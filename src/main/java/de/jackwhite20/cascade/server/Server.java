@@ -24,12 +24,15 @@ import de.jackwhite20.cascade.server.settings.ServerSettings;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.channels.*;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by JackWhite20 on 26.07.2015.
@@ -51,6 +54,12 @@ public class Server extends Thread {
     private DatagramChannel serverDatagramChannel;
 
     private Selector selector;
+
+    private AtomicInteger idCounter = new AtomicInteger(0);
+
+    private List<SelectorThread> selectorThreads = new ArrayList<>();
+
+    private AtomicInteger selectorCounter = new AtomicInteger(0);
 
     public Server(ServerSettings settings) {
         this.settings = settings;
@@ -82,6 +91,7 @@ public class Server extends Thread {
 
                 for (int i = 1; i <= settings.selectorCount(); i++) {
                     SelectorThread selectorThread = new SelectorThread(i);
+                    selectorThreads.add(selectorThread);
 
                     selectorPool.execute(selectorThread);
                 }
@@ -94,6 +104,21 @@ public class Server extends Thread {
 
     public Future<Server> bind(String host, int port) {
         return bind(new InetSocketAddress(host, port));
+    }
+
+    private int nextId() {
+        return idCounter.getAndIncrement();
+    }
+
+    private Selector nextSelector() {
+        int next = selectorCounter.getAndIncrement();
+
+        if(next >= selectorThreads.size()) {
+            selectorCounter.set(0);
+            next = 0;
+        }
+
+        return selectorThreads.get(next).selector();
     }
 
     @Override
@@ -125,6 +150,13 @@ public class Server extends Thread {
                         socketChannel.socket().setKeepAlive(true);
                         socketChannel.socket().setSoTimeout(0);
 
+                        Selector nextSelector = nextSelector();
+                        nextSelector.wakeup();
+
+                        socketChannel.register(nextSelector, SelectionKey.OP_READ);
+                        serverDatagramChannel.register(nextSelector, SelectionKey.OP_READ);
+
+                        int clientId = nextId();
                         System.out.println("Client connected!");
                     }
                 }

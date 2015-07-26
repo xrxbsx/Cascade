@@ -40,6 +40,10 @@ public class SelectorThread implements Runnable {
         this.id = id;
     }
 
+    public Selector selector() {
+        return selector;
+    }
+
     @Override
     public void run() {
         try {
