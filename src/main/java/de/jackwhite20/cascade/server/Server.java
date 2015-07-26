@@ -78,7 +78,6 @@ public class Server extends Thread {
                 setName(settings.name());
                 start();
 
-
                 selectorPool = Executors.newFixedThreadPool(settings.selectorCount(), new SelectorThreadFactory());
 
                 for (int i = 1; i <= settings.selectorCount(); i++) {
