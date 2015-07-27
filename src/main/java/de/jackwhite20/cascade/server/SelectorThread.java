@@ -20,6 +20,7 @@
 package de.jackwhite20.cascade.server;
 
 import java.io.IOException;
+import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.util.Iterator;
@@ -40,6 +41,10 @@ public class SelectorThread implements Runnable {
         this.id = id;
     }
 
+    public int id() {
+        return id;
+    }
+
     public Selector selector() {
         return selector;
     }
@@ -56,21 +61,32 @@ public class SelectorThread implements Runnable {
 
         while (running) {
             try {
-                if(selector.select() == 0)
+                //System.out.println("Here");
+
+/*                if(selector.select() == 0) {
+                    System.out.println("Cancelling");
                     continue;
+                }*/
+
+                System.out.println("Keys: " + selector.selectNow());
 
                 Set<SelectionKey> keys = selector.selectedKeys();
                 Iterator<SelectionKey> keyIterator = keys.iterator();
 
+                while(keyIterator.hasNext()) {
+                    SelectionKey key = keyIterator.next();
 
+                    SelectableChannel selectableChannel = key.channel();
+
+                    if(!key.isValid())
+                        continue;
+                }
+
+                keys.clear();
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
-    }
-
-    public int id() {
-        return id;
     }
 
 }

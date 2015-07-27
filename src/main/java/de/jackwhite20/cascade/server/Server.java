@@ -145,24 +145,33 @@ public class Server extends Thread {
                         if(socketChannel == null)
                             continue;
 
+                        System.out.println("ff");
+
                         socketChannel.configureBlocking(false);
                         socketChannel.socket().setTcpNoDelay(true);
                         socketChannel.socket().setKeepAlive(true);
                         socketChannel.socket().setSoTimeout(0);
+                        System.out.println("ff");
+                        Selector nextSelector = nextSelector().wakeup();
+                        //nextSelector = nextSelector.wakeup();
 
-                        Selector nextSelector = nextSelector();
+                        SelectionKey tcpKey = socketChannel.register(nextSelector, SelectionKey.OP_READ);
+
+                        SelectionKey udpKey = serverDatagramChannel.register(nextSelector, SelectionKey.OP_READ);
+
                         nextSelector.wakeup();
 
-                        socketChannel.register(nextSelector, SelectionKey.OP_READ);
-                        serverDatagramChannel.register(nextSelector, SelectionKey.OP_READ);
-
                         int clientId = nextId();
+
+                        ServerSession session = new ServerSession(clientId, settings.tcpBufferSize(), settings.udpBufferSize(), socketChannel, ((DatagramChannel) udpKey.channel()));
+                        tcpKey.attach(session);
+                        udpKey.attach(session);
+
                         System.out.println("Client connected!");
                     }
                 }
 
                 keys.clear();
-
             } catch (Exception e) {
                 e.printStackTrace();
             }

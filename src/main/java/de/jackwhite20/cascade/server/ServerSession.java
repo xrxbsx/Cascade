@@ -48,6 +48,7 @@ public class ServerSession {
         this.socketChannel = socketChannel;
         this.datagramChannel = datagramChannel;
         try {
+            this.datagramChannel.configureBlocking(false);
             this.remoteAddress = socketChannel.getRemoteAddress();
         } catch (IOException e) {
             e.printStackTrace();
