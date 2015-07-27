@@ -61,14 +61,9 @@ public class SelectorThread implements Runnable {
 
         while (running) {
             try {
-                //System.out.println("Here");
-
-/*                if(selector.select() == 0) {
-                    System.out.println("Cancelling");
+                if(selector.select() == 0) {
                     continue;
-                }*/
-
-                System.out.println("Keys: " + selector.selectNow());
+                }
 
                 Set<SelectionKey> keys = selector.selectedKeys();
                 Iterator<SelectionKey> keyIterator = keys.iterator();
