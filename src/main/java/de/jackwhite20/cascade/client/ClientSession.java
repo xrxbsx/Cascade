@@ -17,9 +17,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.jackwhite20.cascade.server;
+package de.jackwhite20.cascade.client;
 
-import de.jackwhite20.cascade.server.listener.ServerListener;
+import de.jackwhite20.cascade.client.listener.ClientListener;
+import de.jackwhite20.cascade.client.settings.ClientSettings;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
@@ -27,79 +28,43 @@ import java.io.IOException;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
-import java.nio.channels.SelectionKey;
+import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 
 /**
- * Created by JackWhite20 on 26.07.2015.
+ * Created by JackWhite20 on 03.10.2015.
  */
-public class ServerSession {
+public class ClientSession {
 
-    private int id;
-
-    private int tcpBufferSize;
-
-    private int udpBufferSize;
+    private Client client;
 
     private SocketChannel socketChannel;
 
     private DatagramChannel datagramChannel;
 
-    private ServerListener listener;
-
-    private SelectionKey tcpKey;
-
-    private SelectionKey udpKey;
-
-    private SocketAddress remoteAddress;
-
     private ByteBuffer tcpBuffer;
 
     private ByteBuffer udpBuffer;
 
-    public ServerSession(int id, int tcpBufferSize, int udpBufferSize, SocketChannel socketChannel, DatagramChannel datagramChannel, ServerListener listener, SelectionKey tcpKey, SelectionKey udpKey) {
+    private ClientListener listener;
 
-        this.id = id;
-        this.tcpBufferSize = tcpBufferSize;
-        this.udpBufferSize = udpBufferSize;
+    public ClientSession(Client client, SocketChannel socketChannel, DatagramChannel datagramChannel, ByteBuffer tcpBuffer, ByteBuffer udpBuffer, ClientListener listener) {
+
+        this.client = client;
         this.socketChannel = socketChannel;
         this.datagramChannel = datagramChannel;
+        this.tcpBuffer = tcpBuffer;
+        this.udpBuffer = udpBuffer;
         this.listener = listener;
-        this.tcpKey = tcpKey;
-        this.udpKey = udpKey;
-        try {
-            this.datagramChannel.configureBlocking(false);
-            this.remoteAddress = socketChannel.getRemoteAddress();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        this.tcpBuffer = ByteBuffer.allocate(tcpBufferSize);
-        this.udpBuffer = ByteBuffer.allocate(udpBufferSize);
-    }
-
-    public void close(boolean silent) {
-        try {
-
-            if(udpKey != null)
-                udpKey.cancel();
-            if(tcpKey != null)
-                tcpKey.cancel();
-
-            if(socketChannel == null)
-                return;
-
-            socketChannel.close();
-            datagramChannel.disconnect();
-
-            if(!silent)
-                listener.onClientDisconnected(this);
-        }catch (Exception e) {
-            //
-        }
     }
 
     public void close() {
-        close(false);
+
+        try {
+            client.disconnect();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void readSocket() {
@@ -128,7 +93,7 @@ public class ServerSession {
         tcpBuffer.get(bytes);
 
         if(listener != null)
-            listener.onReceived(this, bytes);
+            listener.onReceived(bytes);
     }
 
     public void readDatagram() {
@@ -149,7 +114,7 @@ public class ServerSession {
             udpBuffer.get(bytes);
 
             if(listener != null)
-                listener.onReceived(this, bytes);
+                listener.onReceived(bytes);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -157,6 +122,9 @@ public class ServerSession {
 
     public void sendTCP(byte[] buffer) {
 
+        if(!socketChannel.isOpen())
+            return;
+
         try {
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             DataOutputStream dataOutputStream = new DataOutputStream(byteArrayOutputStream);
@@ -164,12 +132,14 @@ public class ServerSession {
             dataOutputStream.writeInt(buffer.length);
             dataOutputStream.write(buffer);
 
-            ByteBuffer sendBuffer = ByteBuffer.wrap(byteArrayOutputStream.toByteArray());
+            byte[] ordered = byteArrayOutputStream.toByteArray();
+
+            ByteBuffer sendBuffer = ByteBuffer.wrap(ordered);
 
             socketChannel.write(sendBuffer);
 
             if(listener != null)
-                listener.onSent(this);
+                listener.onSent(ordered);
         }catch (Exception e) {
             e.printStackTrace();
         }
@@ -177,6 +147,9 @@ public class ServerSession {
 
     public void sendUDP(byte[] buffer) {
 
+        if(!socketChannel.isOpen())
+            return;
+
         try {
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             DataOutputStream dataOutputStream = new DataOutputStream(byteArrayOutputStream);
@@ -184,44 +157,16 @@ public class ServerSession {
             dataOutputStream.writeInt(buffer.length);
             dataOutputStream.write(buffer);
 
-            ByteBuffer sendBuffer = ByteBuffer.wrap(byteArrayOutputStream.toByteArray());
+            byte[] ordered = byteArrayOutputStream.toByteArray();
 
-            datagramChannel.send(sendBuffer, remoteAddress);
+            ByteBuffer sendBuffer = ByteBuffer.wrap(ordered);
+
+            datagramChannel.write(sendBuffer);
 
             if(listener != null)
-                listener.onSent(this);
+                listener.onSent(ordered);
         }catch (Exception e) {
             e.printStackTrace();
         }
-    }
-
-    public int id() {
-
-        return id;
-    }
-
-    public int tcpBufferSize() {
-
-        return tcpBufferSize;
-    }
-
-    public int udpBufferSize() {
-
-        return udpBufferSize;
-    }
-
-    public SocketChannel socketChannel() {
-
-        return socketChannel;
-    }
-
-    public DatagramChannel datagramChannel() {
-
-        return datagramChannel;
-    }
-
-    public SocketAddress remoteAddress() {
-
-        return remoteAddress;
     }
 }

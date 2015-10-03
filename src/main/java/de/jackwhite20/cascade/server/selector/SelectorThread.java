@@ -17,14 +17,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.jackwhite20.cascade.server;
+package de.jackwhite20.cascade.server.selector;
+
+import de.jackwhite20.cascade.server.ServerSession;
 
 import java.io.IOException;
+import java.nio.channels.DatagramChannel;
 import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Created by JackWhite20 on 26.07.2015.
@@ -37,20 +41,27 @@ public class SelectorThread implements Runnable {
 
     private Selector selector;
 
-    public SelectorThread(int id) {
+    private ReentrantLock selectorLock;
+
+    public SelectorThread(int id, ReentrantLock selectorLock) {
+
         this.id = id;
+        this.selectorLock = selectorLock;
     }
 
     public int id() {
+
         return id;
     }
 
     public Selector selector() {
+
         return selector;
     }
 
     @Override
     public void run() {
+
         try {
             this.selector = Selector.open();
         } catch (IOException e) {
@@ -61,9 +72,10 @@ public class SelectorThread implements Runnable {
 
         while (running) {
             try {
-                if(selector.select() == 0) {
-                    continue;
-                }
+                selectorLock.lock();
+                selectorLock.unlock();
+
+                selector.select();
 
                 Set<SelectionKey> keys = selector.selectedKeys();
                 Iterator<SelectionKey> keyIterator = keys.iterator();
@@ -71,13 +83,26 @@ public class SelectorThread implements Runnable {
                 while(keyIterator.hasNext()) {
                     SelectionKey key = keyIterator.next();
 
+                    keyIterator.remove();
+
                     SelectableChannel selectableChannel = key.channel();
 
                     if(!key.isValid())
                         continue;
-                }
 
-                keys.clear();
+                    if (key.isReadable()) {
+                        ServerSession session = (ServerSession) key.attachment();
+
+                        if(session == null)
+                            continue;
+
+                        if(selectableChannel instanceof DatagramChannel) {
+                            session.readDatagram();
+                        }else {
+                            session.readSocket();
+                        }
+                    }
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }

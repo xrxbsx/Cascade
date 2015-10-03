@@ -19,10 +19,12 @@
 
 package de.jackwhite20.cascade.server;
 
+import de.jackwhite20.cascade.server.listener.ServerListener;
+import de.jackwhite20.cascade.server.selector.SelectorThread;
+import de.jackwhite20.cascade.server.selector.SelectorThreadFactory;
 import de.jackwhite20.cascade.server.settings.ServerSettings;
 
 import java.net.InetSocketAddress;
-import java.net.Socket;
 import java.nio.channels.*;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -33,6 +35,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Created by JackWhite20 on 26.07.2015.
@@ -53,6 +56,8 @@ public class Server extends Thread {
 
     private DatagramChannel serverDatagramChannel;
 
+    private ServerListener listener;
+
     private Selector selector;
 
     private AtomicInteger idCounter = new AtomicInteger(0);
@@ -61,11 +66,16 @@ public class Server extends Thread {
 
     private AtomicInteger selectorCounter = new AtomicInteger(0);
 
+    private ReentrantLock selectorLock = new ReentrantLock();
+
     public Server(ServerSettings settings) {
+
         this.settings = settings;
+        this.listener = settings.listener();
     }
 
     public Future<Server> bind(InetSocketAddress inetSocketAddress) {
+
         return pool.submit(new Callable<Server>() {
 
             @Override
@@ -90,11 +100,30 @@ public class Server extends Thread {
                 selectorPool = Executors.newFixedThreadPool(settings.selectorCount(), new SelectorThreadFactory());
 
                 for (int i = 1; i <= settings.selectorCount(); i++) {
-                    SelectorThread selectorThread = new SelectorThread(i);
+                    SelectorThread selectorThread = new SelectorThread(i, selectorLock);
                     selectorThreads.add(selectorThread);
 
                     selectorPool.execute(selectorThread);
                 }
+/*
+                new Thread(() -> {
+
+                    while (true) {
+                        for (SelectorThread selectorThread : selectorThreads) {
+                            System.out.println(selectorThread.id() + ": " + selectorThread.selector().keys().size() + "keys");
+
+                            if(selectorThread.selector().keys().size() > 0)
+                                System.out.println(selectorThread.selector().keys().iterator().next().isValid());
+                        }
+                        //System.out.println("Keys: " + selector().keys().size());
+
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }).start();*/
 
                 return Server.this;
             }
@@ -103,14 +132,17 @@ public class Server extends Thread {
     }
 
     public Future<Server> bind(String host, int port) {
+
         return bind(new InetSocketAddress(host, port));
     }
 
     private int nextId() {
+
         return idCounter.getAndIncrement();
     }
 
-    private Selector nextSelector() {
+    private SelectorThread nextSelector() {
+
         int next = selectorCounter.getAndIncrement();
 
         if(next >= selectorThreads.size()) {
@@ -118,23 +150,25 @@ public class Server extends Thread {
             next = 0;
         }
 
-        return selectorThreads.get(next).selector();
+        return selectorThreads.get(next);
     }
 
     @Override
     public void run() {
+
         running = true;
 
         while (running) {
             try {
-                if(selector.select() == 0)
-                    continue;
+                selector.select();
 
                 Set<SelectionKey> keys = selector.selectedKeys();
                 Iterator<SelectionKey> keyIterator = keys.iterator();
 
                 while (keyIterator.hasNext()) {
                     SelectionKey key = keyIterator.next();
+
+                    keyIterator.remove();
 
                     if(!key.isValid())
                         continue;
@@ -145,29 +179,43 @@ public class Server extends Thread {
                         if(socketChannel == null)
                             continue;
 
-                        System.out.println("ff");
-
                         socketChannel.configureBlocking(false);
                         socketChannel.socket().setTcpNoDelay(true);
                         socketChannel.socket().setKeepAlive(true);
                         socketChannel.socket().setSoTimeout(0);
-                        System.out.println("ff");
-                        Selector nextSelector = nextSelector().wakeup();
-                        //nextSelector = nextSelector.wakeup();
 
-                        SelectionKey tcpKey = socketChannel.register(nextSelector, SelectionKey.OP_READ);
+                        SelectorThread selectorThread = nextSelector();
+                        Selector nextSelector = selectorThread.selector();
 
-                        SelectionKey udpKey = serverDatagramChannel.register(nextSelector, SelectionKey.OP_READ);
+                        selectorLock.lock();
 
                         nextSelector.wakeup();
 
+                        SelectionKey tcpKey = null;
+                        try {
+                            tcpKey = socketChannel.register(nextSelector, SelectionKey.OP_READ);
+                        } catch (Exception e) {
+                            socketChannel.close();
+                            continue;
+                        }
+                        SelectionKey udpKey = null;
+                        try {
+                            udpKey = serverDatagramChannel.register(nextSelector, SelectionKey.OP_READ);
+                        } catch (Exception e) {
+                            socketChannel.close();
+                            continue;
+                        }
+
+                        selectorLock.unlock();
+
                         int clientId = nextId();
 
-                        ServerSession session = new ServerSession(clientId, settings.tcpBufferSize(), settings.udpBufferSize(), socketChannel, ((DatagramChannel) udpKey.channel()));
+                        ServerSession session = new ServerSession(clientId, settings.tcpBufferSize(), settings.udpBufferSize(), socketChannel, ((DatagramChannel) udpKey.channel()), listener, tcpKey, udpKey);
                         tcpKey.attach(session);
                         udpKey.attach(session);
 
-                        System.out.println("Client connected!");
+                        if(listener != null)
+                            listener.onClientConnected(clientId, session);
                     }
                 }
 
@@ -175,28 +223,31 @@ public class Server extends Thread {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-
-
         }
     }
 
     public InetSocketAddress adress() {
+
         return inetSocketAddress;
     }
 
     public ServerSettings settings() {
+
         return settings;
     }
 
     public ServerSocketChannel socketChannel() {
+
         return serverSocketChannel;
     }
 
     public DatagramChannel datagramChannel() {
+
         return serverDatagramChannel;
     }
 
     public Selector selector() {
+
         return selector;
     }
 

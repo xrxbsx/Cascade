@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.jackwhite20.cascade.server;
+package de.jackwhite20.cascade.server.selector;
 
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -31,6 +31,7 @@ public class SelectorThreadFactory implements ThreadFactory {
 
     @Override
     public Thread newThread(Runnable r) {
+
         return new Thread(r, "Selector-" + id.getAndIncrement());
     }
 

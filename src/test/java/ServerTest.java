@@ -18,24 +18,51 @@
  */
 
 import de.jackwhite20.cascade.server.Server;
+import de.jackwhite20.cascade.server.ServerSession;
+import de.jackwhite20.cascade.server.listener.ServerListenerAdapter;
 import de.jackwhite20.cascade.server.settings.ServerSettings;
+
+import java.nio.charset.Charset;
 
 /**
  * Created by JackWhite20 on 26.07.2015.
  */
-public class ServerTest {
+public class ServerTest extends ServerListenerAdapter {
 
     public static void main(String[] args) throws Exception {
-        ServerSettings settings = new ServerSettings.ServerSettingsBuilder().withName("CascadeServer")
-            .withBackLog(200)
-            .withSelectorCount(4)
-            .withTcpBufferSize(1024)
-            .withUdpBufferSize(1024)
-            .build();
+
+        ServerSettings settings = new ServerSettings.ServerSettingsBuilder()
+                .withName("CascadeServer")
+                .withBackLog(200)
+                .withSelectorCount(4)
+                .withTcpBufferSize(1024)
+                .withUdpBufferSize(1024)
+                .withListener(new ServerTest())
+                .build();
         Server s = new Server(settings);
+
         s.bind("0.0.0.0", 12345).get();
 
         System.out.println("Server started!");
     }
 
+    @Override
+    public void onClientDisconnected(ServerSession session) {
+
+        System.out.println("Client disconnected: " + session.id());
+    }
+
+    @Override
+    public void onClientConnected(int clientId, ServerSession session) {
+
+        System.out.println("Client connected: " + clientId);
+    }
+
+    @Override
+    public void onReceived(ServerSession session, byte[] buffer) {
+
+        System.out.println("Received " + buffer.length + "bytes from " + session.id());
+
+        session.sendUDP("Pong".getBytes());
+    }
 }

@@ -19,6 +19,8 @@
 
 package de.jackwhite20.cascade.server.settings;
 
+import de.jackwhite20.cascade.server.listener.ServerListener;
+
 /**
  * Created by JackWhite20 on 26.07.2015.
  */
@@ -34,24 +36,36 @@ public class ServerSettings {
 
     private int udpBufferSize;
 
+    private ServerListener listener;
+
     public String name() {
+
         return name;
     }
 
     public int backLog() {
+
         return backLog;
     }
 
     public int selectorCount() {
+
         return selectorCount;
     }
 
     public int tcpBufferSize() {
+
         return tcpBufferSize;
     }
 
     public int udpBufferSize() {
+
         return udpBufferSize;
+    }
+
+    public ServerListener listener() {
+
+        return listener;
     }
 
     public static class ServerSettingsBuilder {
@@ -59,36 +73,49 @@ public class ServerSettings {
         private static ServerSettings instance = new ServerSettings();
 
         public ServerSettingsBuilder withName(String name) {
+
             instance.name = name;
 
             return this;
         }
 
         public ServerSettingsBuilder withBackLog(int backLog) {
+
             instance.backLog = backLog;
 
             return this;
         }
 
         public ServerSettingsBuilder withSelectorCount(int selectorCount) {
+
             instance.selectorCount = selectorCount;
 
             return this;
         }
 
         public ServerSettingsBuilder withTcpBufferSize(int tcpBufferSize) {
+
             instance.tcpBufferSize = tcpBufferSize;
 
             return this;
         }
 
         public ServerSettingsBuilder withUdpBufferSize(int udpBufferSize) {
+
             instance.udpBufferSize = udpBufferSize;
 
             return this;
         }
 
+        public ServerSettingsBuilder withListener(ServerListener listener) {
+
+            instance.listener = listener;
+
+            return this;
+        }
+
         public ServerSettings build() {
+
             return instance;
         }
 
