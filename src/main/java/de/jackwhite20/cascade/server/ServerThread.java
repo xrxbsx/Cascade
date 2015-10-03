@@ -261,7 +261,7 @@ public class ServerThread extends Thread {
         }
     }
 
-    public InetSocketAddress adress() {
+    public InetSocketAddress address() {
 
         return inetSocketAddress;
     }

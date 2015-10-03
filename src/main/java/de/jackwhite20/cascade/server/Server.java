@@ -54,9 +54,9 @@ public class Server {
         serverThread.shutdown();
     }
 
-    public InetSocketAddress adress() {
+    public InetSocketAddress address() {
 
-        return serverThread.adress();
+        return serverThread.address();
     }
 
     public ServerSettings settings() {
