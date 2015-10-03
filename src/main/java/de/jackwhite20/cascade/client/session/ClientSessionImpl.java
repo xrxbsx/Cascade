@@ -17,10 +17,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.jackwhite20.cascade.client;
+package de.jackwhite20.cascade.client.session;
 
+import de.jackwhite20.cascade.client.ClientThread;
 import de.jackwhite20.cascade.client.listener.ClientListener;
-import de.jackwhite20.cascade.client.settings.ClientSettings;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
@@ -28,15 +28,14 @@ import java.io.IOException;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
-import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 
 /**
  * Created by JackWhite20 on 03.10.2015.
  */
-public class ClientSession {
+public class ClientSessionImpl implements ClientSession {
 
-    private Client client;
+    private ClientThread client;
 
     private SocketChannel socketChannel;
 
@@ -48,7 +47,7 @@ public class ClientSession {
 
     private ClientListener listener;
 
-    public ClientSession(Client client, SocketChannel socketChannel, DatagramChannel datagramChannel, ByteBuffer tcpBuffer, ByteBuffer udpBuffer, ClientListener listener) {
+    public ClientSessionImpl(ClientThread client, SocketChannel socketChannel, DatagramChannel datagramChannel, ByteBuffer tcpBuffer, ByteBuffer udpBuffer, ClientListener listener) {
 
         this.client = client;
         this.socketChannel = socketChannel;
@@ -58,13 +57,9 @@ public class ClientSession {
         this.listener = listener;
     }
 
-    public void close() {
+    public void disconnect() {
 
-        try {
-            client.disconnect();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        client.disconnect();
     }
 
     public void readSocket() {
@@ -80,7 +75,7 @@ public class ClientSession {
         }
 
         if(read == -1) {
-            close();
+            disconnect();
 
             return;
         }

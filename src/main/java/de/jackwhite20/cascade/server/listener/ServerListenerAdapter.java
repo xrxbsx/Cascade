@@ -19,7 +19,7 @@
 
 package de.jackwhite20.cascade.server.listener;
 
-import de.jackwhite20.cascade.server.ServerSession;
+import de.jackwhite20.cascade.server.session.ServerSession;
 
 /**
  * Created by JackWhite20 on 27.07.2015.

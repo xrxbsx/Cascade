@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.jackwhite20.cascade.server;
+package de.jackwhite20.cascade.server.session;
 
 import de.jackwhite20.cascade.server.listener.ServerListener;
 

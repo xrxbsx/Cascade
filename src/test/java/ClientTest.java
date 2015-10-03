@@ -18,49 +18,71 @@
  */
 
 import de.jackwhite20.cascade.client.Client;
+import de.jackwhite20.cascade.client.session.ClientSession;
+import de.jackwhite20.cascade.client.ClientThread;
 import de.jackwhite20.cascade.client.listener.ClientListenerAdapter;
 import de.jackwhite20.cascade.client.settings.ClientSettings;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by JackWhite20 on 03.10.2015.
  */
 public class ClientTest extends ClientListenerAdapter {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
 
-        ClientTest clientTest = new ClientTest();
+        List<ClientSession> sessions = new ArrayList<>();
 
-        ClientSettings settings = new ClientSettings.ClientSettingsBuilder()
-                .withHost("localhost")
-                .withPort(12345)
-                .withListener(clientTest)
-                .withTcpBufferSize(1024)
-                .withUdpBufferSize(1024)
-                .build();
-        Client client = new Client(settings);
+        for (int i = 0; i < 500; i++) {
+            ClientTest clientTest = new ClientTest();
 
-        client.connect();
+            ClientSettings settings = new ClientSettings.ClientSettingsBuilder()
+                    .withName("CascadeClient")
+                    .withHost("localhost")
+                    .withPort(12345)
+                    .withListener(clientTest)
+                    .withTcpBufferSize(1024)
+                    .withUdpBufferSize(1024)
+                    .build();
+            Client client = new Client(settings);
 
-        clientTest.setClient(client);
+            //System.out.println("Connecting to " + client.host() + ":" + client.port());
+
+            ClientSession session = client.connect().get();
+
+            sessions.add(session);
+        }
+
+        Scanner scanner = new Scanner(System.in);
+
+        String line = null;
+        while ((line = scanner.nextLine()) != null) {
+            for (ClientSession session : sessions) {
+                session.sendUDP(line.getBytes());
+            }
+        }
     }
 
-    private Client client;
+    private ClientSession session;
 
-    public void setClient(Client client) {
-
-        this.client = client;
-    }
+    public static final AtomicInteger PONGS = new AtomicInteger(0);
 
     @Override
-    public void onConnected() {
+    public void onConnected(ClientSession session) {
+
+        this.session = session;
 
         System.out.println("Connected!");
 
-        client.sendUDP("Init".getBytes());
+        //session.sendTCP("Init".getBytes());
     }
 
     @Override
-    public void onDisconnected() {
+    public void onDisconnected(ClientSession session) {
 
         System.out.println("Disconnected!");
     }
@@ -70,6 +92,6 @@ public class ClientTest extends ClientListenerAdapter {
 
         System.out.println("Received " + buffer.length + "bytes!");
 
-        client.sendUDP("Ping".getBytes());
+        System.out.println("Pongs Received: " + PONGS.incrementAndGet());
     }
 }

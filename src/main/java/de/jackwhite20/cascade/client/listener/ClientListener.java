@@ -19,14 +19,16 @@
 
 package de.jackwhite20.cascade.client.listener;
 
+import de.jackwhite20.cascade.client.session.ClientSession;
+
 /**
  * Created by JackWhite20 on 27.07.2015.
  */
 public interface ClientListener {
 
-    void onConnected();
+    void onConnected(ClientSession session);
 
-    void onDisconnected();
+    void onDisconnected(ClientSession session);
 
     void onSent(byte[] buffer);
 

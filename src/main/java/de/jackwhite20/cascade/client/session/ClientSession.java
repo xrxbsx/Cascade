@@ -17,23 +17,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.jackwhite20.cascade.server.listener;
+package de.jackwhite20.cascade.client.session;
 
-import de.jackwhite20.cascade.server.session.ServerSession;
+import java.io.IOException;
 
 /**
- * Created by JackWhite20 on 27.07.2015.
+ * Created by JackWhite20 on 03.10.2015.
  */
-public interface ServerListener {
+public interface ClientSession {
 
-    void onServerStarted();
+    void sendTCP(byte[] bytes);
 
-    void onClientConnected(int clientId, ServerSession session);
+    void sendUDP(byte[] bytes);
 
-    void onClientDisconnected(ServerSession session);
-
-    void onSent(ServerSession session);
-
-    void onReceived(ServerSession session, byte[] buffer);
-
+    void disconnect();
 }

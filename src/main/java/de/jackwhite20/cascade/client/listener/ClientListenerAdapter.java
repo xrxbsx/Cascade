@@ -19,18 +19,20 @@
 
 package de.jackwhite20.cascade.client.listener;
 
+import de.jackwhite20.cascade.client.session.ClientSession;
+
 /**
  * Created by JackWhite20 on 27.07.2015.
  */
 public class ClientListenerAdapter implements ClientListener {
 
     @Override
-    public void onConnected() {
+    public void onConnected(ClientSession session) {
 
     }
 
     @Override
-    public void onDisconnected() {
+    public void onDisconnected(ClientSession session) {
 
     }
 

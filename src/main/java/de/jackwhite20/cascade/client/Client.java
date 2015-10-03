@@ -19,164 +19,43 @@
 
 package de.jackwhite20.cascade.client;
 
-import de.jackwhite20.cascade.client.listener.ClientListener;
+import de.jackwhite20.cascade.client.session.ClientSessionImpl;
 import de.jackwhite20.cascade.client.settings.ClientSettings;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
-import java.nio.channels.*;
-import java.util.Iterator;
-import java.util.Set;
+import java.util.concurrent.Future;
 
 /**
  * Created by JackWhite20 on 03.10.2015.
  */
-public class Client extends Thread {
+public class Client {
 
     private ClientSettings settings;
 
-    private Selector selector;
-
-    private SocketChannel socketChannel;
-
-    private DatagramChannel datagramChannel;
-
-    private ClientSession session;
-
-    private ClientListener listener;
-
-    private String host;
-
-    private int port;
-
-    private int tcpBufferSize;
-
-    private int udpBufferSize;
-
-    private boolean running = false;
+    private ClientThread clientThread;
 
     public Client(ClientSettings settings) {
 
-        this.host = settings.host();
-        this.port = settings.port();
-        this.tcpBufferSize = settings.tcpBufferSize();
-        this.udpBufferSize = settings.udpBufferSize();
-        this.listener = settings.listener();
         this.settings = settings;
+        this.clientThread = new ClientThread(settings);
     }
 
-    public void connect() {
+    public Future<ClientSessionImpl> connect() {
 
-        try {
-            selector = Selector.open();
-            socketChannel = SocketChannel.open();
-            socketChannel.configureBlocking(false);
-
-            socketChannel.socket().setKeepAlive(true);
-            socketChannel.socket().setTcpNoDelay(true);
-            socketChannel.socket().setSoTimeout(0);
-
-            socketChannel.connect(new InetSocketAddress(host, port));
-            socketChannel.register(selector, SelectionKey.OP_CONNECT);
-
-            running = true;
-
-            setName("Receive-Thread");
-            start();
-        } catch (IOException e) {
-            // Error handling
-        }
+        return clientThread.connect();
     }
 
-    public void sendTCP(byte[] buffer) {
+    public void disconnect() {
 
-        session.sendTCP(buffer);
+        clientThread.disconnect();
     }
 
-    public void sendUDP(byte[] buffer) {
+    public String host() {
 
-        session.sendUDP(buffer);
+        return settings.host();
     }
 
-    public void disconnect() throws IOException {
+    public int port() {
 
-        running = false;
-
-        if(selector != null)
-            selector.close();
-
-        if(socketChannel != null)
-            socketChannel.close();
-
-        if(datagramChannel != null)
-            datagramChannel.close();
-
-        if(listener != null)
-            listener.onDisconnected();
-    }
-
-    @Override
-    public void run() {
-
-        while (running) {
-            try {
-                selector.select();
-
-                Set<SelectionKey> keys = selector.selectedKeys();
-
-                Iterator<SelectionKey> keyIterator = keys.iterator();
-
-                while(keyIterator.hasNext()) {
-                    SelectionKey key = keyIterator.next();
-
-                    keyIterator.remove();
-
-                    SelectableChannel selectableChannel = key.channel();
-
-                    if(!key.isValid())
-                        continue;
-
-                    if(key.isConnectable()) {
-                        socketChannel.finishConnect();
-
-                        datagramChannel = DatagramChannel.open();
-                        // Start UDP with our local Port, so the server does now our UDP Port
-                        datagramChannel.bind(socketChannel.getLocalAddress());
-                        datagramChannel.configureBlocking(false);
-                        datagramChannel.connect(new InetSocketAddress(host, port));
-
-                        SelectionKey tcpRead = socketChannel.register(selector, SelectionKey.OP_READ);
-                        SelectionKey udpRead = datagramChannel.register(selector, SelectionKey.OP_READ);
-
-                        session = new ClientSession(this, socketChannel, datagramChannel, ByteBuffer.allocate(tcpBufferSize), ByteBuffer.allocate(udpBufferSize), listener);
-
-                        tcpRead.attach(session);
-                        udpRead.attach(session);
-
-                        if(listener != null)
-                            listener.onConnected();
-                    }
-
-                    if(key.isValid() && key.isReadable()) {
-                        ClientSession session = (ClientSession) key.attachment();
-
-                        if(session == null)
-                            continue;
-
-                        if(selectableChannel instanceof DatagramChannel) {
-                            session.readDatagram();
-                        }else {
-                            session.readSocket();
-                        }
-                    }
-
-                }
-
-                keys.clear();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
+        return settings.port();
     }
 }

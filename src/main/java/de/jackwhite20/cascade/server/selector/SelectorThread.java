@@ -19,7 +19,7 @@
 
 package de.jackwhite20.cascade.server.selector;
 
-import de.jackwhite20.cascade.server.ServerSession;
+import de.jackwhite20.cascade.server.session.ServerSession;
 
 import java.io.IOException;
 import java.nio.channels.DatagramChannel;
@@ -57,6 +57,19 @@ public class SelectorThread implements Runnable {
     public Selector selector() {
 
         return selector;
+    }
+
+    public void shutdown() {
+
+        running = false;
+
+        if(selector != null) {
+            try {
+                selector.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     @Override
@@ -104,9 +117,8 @@ public class SelectorThread implements Runnable {
                     }
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                break;
             }
         }
     }
-
 }

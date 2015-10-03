@@ -18,11 +18,13 @@
  */
 
 import de.jackwhite20.cascade.server.Server;
-import de.jackwhite20.cascade.server.ServerSession;
+import de.jackwhite20.cascade.server.ServerThread;
+import de.jackwhite20.cascade.server.session.ServerSession;
 import de.jackwhite20.cascade.server.listener.ServerListenerAdapter;
 import de.jackwhite20.cascade.server.settings.ServerSettings;
 
-import java.nio.charset.Charset;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by JackWhite20 on 26.07.2015.
@@ -31,17 +33,29 @@ public class ServerTest extends ServerListenerAdapter {
 
     public static void main(String[] args) throws Exception {
 
+
+        new ServerTest();
+    }
+
+    private Server server;
+
+    public ServerTest() {
+
         ServerSettings settings = new ServerSettings.ServerSettingsBuilder()
                 .withName("CascadeServer")
                 .withBackLog(200)
                 .withSelectorCount(4)
                 .withTcpBufferSize(1024)
                 .withUdpBufferSize(1024)
-                .withListener(new ServerTest())
+                .withListener(this)
                 .build();
-        Server s = new Server(settings);
+        server = new Server(settings);
 
-        s.bind("0.0.0.0", 12345).get();
+        try {
+            server.bind("0.0.0.0", 12345).get();
+        } catch (Exception e) {
+            System.err.println("Error while binding: " + e.getMessage());
+        }
 
         System.out.println("Server started!");
     }
