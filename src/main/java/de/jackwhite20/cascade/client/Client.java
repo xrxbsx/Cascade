@@ -44,6 +44,11 @@ public class Client {
         return clientThread.connect();
     }
 
+    public boolean isConnected() {
+
+        return clientThread.isRunning();
+    }
+
     public void disconnect() {
 
         clientThread.disconnect();

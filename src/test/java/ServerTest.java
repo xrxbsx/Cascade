@@ -18,13 +18,9 @@
  */
 
 import de.jackwhite20.cascade.server.Server;
-import de.jackwhite20.cascade.server.ServerThread;
-import de.jackwhite20.cascade.server.session.ServerSession;
 import de.jackwhite20.cascade.server.listener.ServerListenerAdapter;
+import de.jackwhite20.cascade.server.session.ServerSession;
 import de.jackwhite20.cascade.server.settings.ServerSettings;
-
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by JackWhite20 on 26.07.2015.
@@ -32,7 +28,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class ServerTest extends ServerListenerAdapter {
 
     public static void main(String[] args) throws Exception {
-
 
         new ServerTest();
     }
@@ -77,6 +72,6 @@ public class ServerTest extends ServerListenerAdapter {
 
         System.out.println("Received " + buffer.length + "bytes from " + session.id());
 
-        session.sendUDP("Pong".getBytes());
+        session.sendTCP("Pong".getBytes());
     }
 }

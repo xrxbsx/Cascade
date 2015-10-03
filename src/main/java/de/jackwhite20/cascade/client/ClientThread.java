@@ -223,4 +223,9 @@ public class ClientThread extends Thread {
             }
         }
     }
+
+    public boolean isRunning() {
+
+        return running;
+    }
 }
