@@ -47,7 +47,7 @@ public class ServerTest extends ServerListenerAdapter {
         server = new Server(settings);
 
         try {
-            server.bind("0.0.0.0", 12345).get();
+            server.bind("0.0.0.0", 12345);
         } catch (Exception e) {
             System.err.println("Error while binding: " + e.getMessage());
         }
