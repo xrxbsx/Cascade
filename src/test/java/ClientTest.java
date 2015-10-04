@@ -42,8 +42,6 @@ public class ClientTest extends ClientListenerAdapter {
 
             ClientSettings settings = new ClientSettings.ClientSettingsBuilder()
                     .withName("CascadeClient")
-                    .withHost("localhost")
-                    .withPort(12345)
                     .withListener(clientTest)
                     .withTcpBufferSize(1024)
                     .withUdpBufferSize(1024)
@@ -52,7 +50,7 @@ public class ClientTest extends ClientListenerAdapter {
 
             //System.out.println("Connecting to " + client.host() + ":" + client.port());
 
-            ClientSession session = client.connect().get();
+            ClientSession session = client.connect("localhost", 12345).get();
 
             sessions.add(session);
         }

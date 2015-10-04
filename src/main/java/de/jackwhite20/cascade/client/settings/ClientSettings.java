@@ -21,18 +21,12 @@ package de.jackwhite20.cascade.client.settings;
 
 import de.jackwhite20.cascade.client.listener.ClientListener;
 
-import java.net.InetSocketAddress;
-
 /**
  * Created by JackWhite20 on 26.07.2015.
  */
 public class ClientSettings {
 
     private String name;
-
-    private String host;
-
-    private int port;
 
     private int tcpBufferSize;
 
@@ -43,16 +37,6 @@ public class ClientSettings {
     public String name() {
         
         return name;
-    }
-
-    public String host() {
-
-        return host;
-    }
-
-    public int port() {
-
-        return port;
     }
 
     public int tcpBufferSize() {
@@ -77,28 +61,6 @@ public class ClientSettings {
         public ClientSettingsBuilder withName(String name) {
 
             instance.name = name;
-
-            return this;
-        }
-
-        public ClientSettingsBuilder withHost(String host) {
-
-            instance.host = host;
-
-            return this;
-        }
-
-        public ClientSettingsBuilder withPort(int port) {
-
-            instance.port = port;
-
-            return this;
-        }
-
-        public ClientSettingsBuilder withSocketAddress(InetSocketAddress socketAddress) {
-
-            instance.host = socketAddress.getHostName();
-            instance.port = socketAddress.getPort();
 
             return this;
         }
@@ -128,7 +90,5 @@ public class ClientSettings {
 
             return instance;
         }
-
     }
-
 }

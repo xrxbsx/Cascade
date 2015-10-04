@@ -67,15 +67,16 @@ public class ClientThread extends Thread {
 
     public ClientThread(ClientSettings settings) {
 
-        this.host = settings.host();
-        this.port = settings.port();
         this.tcpBufferSize = settings.tcpBufferSize();
         this.udpBufferSize = settings.udpBufferSize();
         this.listener = settings.listener();
         this.settings = settings;
     }
 
-    public Future<ClientSessionImpl> connect() {
+    public Future<ClientSessionImpl> connect(String host, int port) {
+
+        this.host = host;
+        this.port = port;
 
         return pool.submit(() -> {
             try {
@@ -110,6 +111,11 @@ public class ClientThread extends Thread {
 
             return null;
         });
+    }
+
+    public Future<ClientSessionImpl> connect(InetSocketAddress address) {
+
+        return connect(address.getHostName(), address.getPort());
     }
 
     public void sendTCP(byte[] buffer) {
@@ -222,6 +228,16 @@ public class ClientThread extends Thread {
                 break;
             }
         }
+    }
+
+    public String host() {
+
+        return host;
+    }
+
+    public int port() {
+
+        return port;
     }
 
     public boolean isRunning() {

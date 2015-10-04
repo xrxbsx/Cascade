@@ -22,6 +22,7 @@ package de.jackwhite20.cascade.client;
 import de.jackwhite20.cascade.client.session.ClientSessionImpl;
 import de.jackwhite20.cascade.client.settings.ClientSettings;
 
+import java.net.InetSocketAddress;
 import java.util.concurrent.Future;
 
 /**
@@ -39,9 +40,14 @@ public class Client {
         this.clientThread = new ClientThread(settings);
     }
 
-    public Future<ClientSessionImpl> connect() {
+    public Future<ClientSessionImpl> connect(String host, int port) {
 
-        return clientThread.connect();
+        return clientThread.connect(host, port);
+    }
+
+    public Future<ClientSessionImpl> connect(InetSocketAddress address) {
+
+        return connect(address.getHostName(), address.getPort());
     }
 
     public boolean isConnected() {
@@ -56,11 +62,11 @@ public class Client {
 
     public String host() {
 
-        return settings.host();
+        return clientThread.host();
     }
 
     public int port() {
 
-        return settings.port();
+        return clientThread.port();
     }
 }
