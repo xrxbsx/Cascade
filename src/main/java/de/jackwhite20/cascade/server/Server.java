@@ -22,7 +22,6 @@ package de.jackwhite20.cascade.server;
 import de.jackwhite20.cascade.server.settings.ServerSettings;
 
 import java.net.InetSocketAddress;
-import java.util.concurrent.Future;
 
 /**
  * Created by JackWhite20 on 03.10.2015.
@@ -39,14 +38,14 @@ public class Server {
         this.serverThread = new ServerThread(settings);
     }
 
-    public Future<ServerThread> bind(InetSocketAddress inetSocketAddress) {
+    public void bind(InetSocketAddress inetSocketAddress) throws Exception {
 
-        return serverThread.bind(inetSocketAddress);
+        serverThread.bind(inetSocketAddress);
     }
 
-    public Future<ServerThread> bind(String host, int port) {
+    public void bind(String host, int port) throws Exception {
 
-        return serverThread.bind(host, port);
+        serverThread.bind(host, port);
     }
 
     public void stop() {

@@ -75,45 +75,41 @@ public class ServerThread extends Thread {
         this.listener = settings.listener();
     }
 
-    public Future<ServerThread> bind(InetSocketAddress inetSocketAddress) {
+    public void bind(InetSocketAddress inetSocketAddress) throws Exception {
 
-        return pool.submit(() -> {
-            serverSocketChannel = ServerSocketChannel.open();
-            serverSocketChannel.configureBlocking(false);
-            serverSocketChannel.socket().setReuseAddress(true);
+        serverSocketChannel = ServerSocketChannel.open();
+        serverSocketChannel.configureBlocking(false);
+        serverSocketChannel.socket().setReuseAddress(true);
 
-            serverDatagramChannel = DatagramChannel.open();
-            serverDatagramChannel.configureBlocking(false);
+        serverDatagramChannel = DatagramChannel.open();
+        serverDatagramChannel.configureBlocking(false);
 
-            selector = Selector.open();
+        selector = Selector.open();
 
-            serverSocketChannel.bind(inetSocketAddress, settings.backLog());
-            serverDatagramChannel.bind(inetSocketAddress);
+        serverSocketChannel.bind(inetSocketAddress, settings.backLog());
+        serverDatagramChannel.bind(inetSocketAddress);
 
-            serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
+        serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
 
-            setName(settings.name());
-            start();
+        setName(settings.name());
+        start();
 
-            selectorPool = Executors.newFixedThreadPool(settings.selectorCount(), new SelectorThreadFactory());
+        selectorPool = Executors.newFixedThreadPool(settings.selectorCount(), new SelectorThreadFactory());
 
-            for (int i = 1; i <= settings.selectorCount(); i++) {
-                SelectorThread selectorThread = new SelectorThread(i, selectorLock);
-                selectorThreads.add(selectorThread);
+        for (int i = 1; i <= settings.selectorCount(); i++) {
+            SelectorThread selectorThread = new SelectorThread(i, selectorLock);
+            selectorThreads.add(selectorThread);
 
-                selectorPool.execute(selectorThread);
-            }
+            selectorPool.execute(selectorThread);
+        }
 
-            if(listener != null)
-                listener.onServerStarted();
-
-            return ServerThread.this;
-        });
+        if(listener != null)
+            listener.onServerStarted();
     }
 
-    public Future<ServerThread> bind(String host, int port) {
+    public void bind(String host, int port) throws Exception {
 
-        return bind(new InetSocketAddress(host, port));
+        bind(new InetSocketAddress(host, port));
     }
 
     public void shutdown() {
