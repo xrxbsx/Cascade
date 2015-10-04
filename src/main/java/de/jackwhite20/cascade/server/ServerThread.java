@@ -103,25 +103,9 @@ public class ServerThread extends Thread {
 
                 selectorPool.execute(selectorThread);
             }
-/*
-                new Thread(() -> {
 
-                    while (true) {
-                        for (SelectorThread selectorThread : selectorThreads) {
-                            System.out.println(selectorThread.id() + ": " + selectorThread.selector().keys().size() + "keys");
-
-                            if(selectorThread.selector().keys().size() > 0)
-                                System.out.println(selectorThread.selector().keys().iterator().next().isValid());
-                        }
-                        //System.out.println("Keys: " + selector().keys().size());
-
-                        try {
-                            Thread.sleep(1000);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }).start();*/
+            if(listener != null)
+                listener.onServerStarted();
 
             return ServerThread.this;
         });
