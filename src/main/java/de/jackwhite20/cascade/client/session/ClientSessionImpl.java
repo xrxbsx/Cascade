@@ -82,13 +82,19 @@ public class ClientSessionImpl implements ClientSession {
 
         tcpBuffer.flip();
 
-        int dataLength = tcpBuffer.getInt();
+        //TODO: Check for better impl
+        while (tcpBuffer.hasRemaining()) {
+            int dataLength = tcpBuffer.getInt();
 
-        byte[] bytes = new byte[dataLength];
-        tcpBuffer.get(bytes);
+            if(dataLength > tcpBuffer.remaining())
+                break;
 
-        if(listener != null)
-            listener.onReceived(bytes);
+            byte[] bytes = new byte[dataLength];
+            tcpBuffer.get(bytes);
+
+            if(listener != null)
+                listener.onReceived(bytes);
+        }
     }
 
     public void readDatagram() {
