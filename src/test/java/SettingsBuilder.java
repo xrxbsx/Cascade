@@ -25,7 +25,7 @@ import de.jackwhite20.cascade.server.settings.ServerSettings;
 public class SettingsBuilder {
 
     public static void main(String[] args) {
-        ServerSettings settings = new ServerSettings.ServerSettingsBuilder().withName("CascadeServer")
+        ServerSettings settings = new ServerSettings.Builder().withName("CascadeServer")
                                                                             .withBackLog(200)
                                                                             .withSelectorCount(4)
                                                                             .withTcpBufferSize(1024)

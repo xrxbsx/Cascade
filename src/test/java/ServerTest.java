@@ -36,7 +36,7 @@ public class ServerTest extends ServerListenerAdapter {
 
     public ServerTest() {
 
-        ServerSettings settings = new ServerSettings.ServerSettingsBuilder()
+        ServerSettings settings = new ServerSettings.Builder()
                 .withName("CascadeServer")
                 .withBackLog(200)
                 .withSelectorCount(4)

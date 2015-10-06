@@ -68,46 +68,46 @@ public class ServerSettings {
         return listener;
     }
 
-    public static class ServerSettingsBuilder {
+    public static class Builder {
 
         private static ServerSettings instance = new ServerSettings();
 
-        public ServerSettingsBuilder withName(String name) {
+        public Builder withName(String name) {
 
             instance.name = name;
 
             return this;
         }
 
-        public ServerSettingsBuilder withBackLog(int backLog) {
+        public Builder withBackLog(int backLog) {
 
             instance.backLog = backLog;
 
             return this;
         }
 
-        public ServerSettingsBuilder withSelectorCount(int selectorCount) {
+        public Builder withSelectorCount(int selectorCount) {
 
             instance.selectorCount = selectorCount;
 
             return this;
         }
 
-        public ServerSettingsBuilder withTcpBufferSize(int tcpBufferSize) {
+        public Builder withTcpBufferSize(int tcpBufferSize) {
 
             instance.tcpBufferSize = tcpBufferSize;
 
             return this;
         }
 
-        public ServerSettingsBuilder withUdpBufferSize(int udpBufferSize) {
+        public Builder withUdpBufferSize(int udpBufferSize) {
 
             instance.udpBufferSize = udpBufferSize;
 
             return this;
         }
 
-        public ServerSettingsBuilder withListener(ServerListener listener) {
+        public Builder withListener(ServerListener listener) {
 
             instance.listener = listener;
 
@@ -118,7 +118,5 @@ public class ServerSettings {
 
             return instance;
         }
-
     }
-
 }

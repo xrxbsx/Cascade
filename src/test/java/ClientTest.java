@@ -40,7 +40,7 @@ public class ClientTest extends ClientListenerAdapter {
         for (int i = 0; i < 500; i++) {
             ClientTest clientTest = new ClientTest();
 
-            ClientSettings settings = new ClientSettings.ClientSettingsBuilder()
+            ClientSettings settings = new ClientSettings.Builder()
                     .withName("CascadeClient")
                     .withListener(clientTest)
                     .withTcpBufferSize(1024)

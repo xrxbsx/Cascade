@@ -54,32 +54,32 @@ public class ClientSettings {
         return listener;
     }
 
-    public static class ClientSettingsBuilder {
+    public static class Builder {
 
         private static ClientSettings instance = new ClientSettings();
 
-        public ClientSettingsBuilder withName(String name) {
+        public Builder withName(String name) {
 
             instance.name = name;
 
             return this;
         }
 
-        public ClientSettingsBuilder withTcpBufferSize(int tcpBufferSize) {
+        public Builder withTcpBufferSize(int tcpBufferSize) {
 
             instance.tcpBufferSize = tcpBufferSize;
 
             return this;
         }
 
-        public ClientSettingsBuilder withUdpBufferSize(int udpBufferSize) {
+        public Builder withUdpBufferSize(int udpBufferSize) {
 
             instance.udpBufferSize = udpBufferSize;
 
             return this;
         }
 
-        public ClientSettingsBuilder withListener(ClientListener listener) {
+        public Builder withListener(ClientListener listener) {
 
             instance.listener = listener;
 
