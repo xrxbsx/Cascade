@@ -30,11 +30,11 @@ public class ServerSettings {
 
     private int backLog;
 
-    private int selectorCount;
+    private int selectorCount = 2;
 
-    private int tcpBufferSize;
+    private int tcpBufferSize= 512;
 
-    private int udpBufferSize;
+    private int udpBufferSize= 512;
 
     private ServerListener listener;
 

@@ -28,9 +28,9 @@ public class ClientSettings {
 
     private String name;
 
-    private int tcpBufferSize;
+    private int tcpBufferSize = 512;
 
-    private int udpBufferSize;
+    private int udpBufferSize = 512;
 
     private ClientListener listener;
 
