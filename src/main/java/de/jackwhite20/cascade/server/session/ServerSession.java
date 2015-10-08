@@ -132,7 +132,8 @@ public class ServerSession {
             byte[] bytes = new byte[dataLength];
             tcpBuffer.get(bytes);
 
-            listener.onReceived(this, bytes);
+            if(listener != null)
+                listener.onReceived(this, bytes);
         }
     }
 
