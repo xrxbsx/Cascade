@@ -56,7 +56,7 @@ public class ClientSettings {
 
     public static class Builder {
 
-        private static ClientSettings instance = new ClientSettings();
+        private ClientSettings instance = new ClientSettings();
 
         public Builder withName(String name) {
 

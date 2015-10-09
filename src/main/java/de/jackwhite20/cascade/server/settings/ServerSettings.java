@@ -70,7 +70,7 @@ public class ServerSettings {
 
     public static class Builder {
 
-        private static ServerSettings instance = new ServerSettings();
+        private ServerSettings instance = new ServerSettings();
 
         public Builder withName(String name) {
 
