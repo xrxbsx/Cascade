@@ -1,7 +1,7 @@
 # Cascade
 Cascade is a simple but powerful event driven network framework.
 
-**Cascade is now in a useable and stable version!**
+**Cascade is currently under some internal structure changes and implementation changes!**
 
 ### Why Cascade?
 - easy to use
