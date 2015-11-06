@@ -20,15 +20,8 @@
 package de.jackwhite20.cascade.shared.session;
 
 /**
- * Created by JackWhite20 on 13.10.2015.
+ * Created by JackWhite20 on 06.11.2015.
  */
-public interface SessionListener {
-
-    void onConnected(Session session);
-
-    void onDisconnected(Session session);
-
-    void onReceived(Session session, byte[] buffer, ProtocolType protocolType);
-
-    void onException(Session session, Throwable throwable);
+public enum ProtocolType {
+    TCP, UDP
 }

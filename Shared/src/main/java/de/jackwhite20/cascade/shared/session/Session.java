@@ -146,7 +146,7 @@ public class Session {
             tcpBuffer.get(bytes);
 
             if(listener != null)
-                listener.onReceived(this, bytes);
+                listener.onReceived(this, bytes, ProtocolType.TCP);
         }
 
         tcpBuffer.compact();
@@ -156,25 +156,13 @@ public class Session {
 
         try {
             while (datagramChannel.receive(udpBuffer) != null) {
-                if(udpBuffer.remaining() == 0) {
-                    ByteBuffer temp = ByteBuffer.allocate(udpBuffer.capacity() * BUFFER_GROW_FACTOR);
-                    udpBuffer.flip();
-                    temp.put(udpBuffer);
-                    udpBuffer = temp;
-                }
-
                 udpBuffer.flip();
 
-                if(udpBuffer.remaining() < 4)
-                    return;
-
-                int dataLength = udpBuffer.getInt();
-
-                byte[] bytes = new byte[dataLength];
+                byte[] bytes = new byte[udpBuffer.remaining()];
                 udpBuffer.get(bytes);
 
                 if(listener != null)
-                    listener.onReceived(this, bytes);
+                    listener.onReceived(this, bytes, ProtocolType.UDP);
 
                 udpBuffer.clear();
             }
@@ -205,13 +193,8 @@ public class Session {
 
     public void sendUnreliable(byte[] buffer) {
 
-        ByteBuffer sendBuffer = ByteBuffer.allocate(buffer.length + 4);
-        sendBuffer.putInt(buffer.length);
-        sendBuffer.put(buffer);
-        sendBuffer.flip();
-
         try {
-            datagramChannel.send(sendBuffer, remoteAddress);
+            datagramChannel.send(ByteBuffer.wrap(buffer), remoteAddress);
         } catch (IOException e) {
             close();
 

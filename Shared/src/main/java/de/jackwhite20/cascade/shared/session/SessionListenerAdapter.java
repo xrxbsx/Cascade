@@ -30,7 +30,7 @@ public class SessionListenerAdapter implements SessionListener {
     }
 
     @Override
-    public void onReceived(Session session, byte[] buffer) {
+    public void onReceived(Session session, byte[] buffer, ProtocolType protocolType) {
 
     }
 
