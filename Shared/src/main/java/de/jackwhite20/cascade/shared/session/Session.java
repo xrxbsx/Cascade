@@ -27,6 +27,8 @@ import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Created by JackWhite20 on 13.10.2015.
@@ -45,7 +47,7 @@ public class Session {
 
     private DatagramChannel datagramChannel;
 
-    private SessionListener listener;
+    private List<SessionListener> listener;
 
     private SocketAddress remoteAddress;
 
@@ -55,7 +57,7 @@ public class Session {
 
     private Disconnectable disconnectable;
 
-    public Session(int id, SocketChannel socketChannel, DatagramChannel datagramChannel, SessionListener listener, Disconnectable disconnectable) {
+    public Session(int id, SocketChannel socketChannel, DatagramChannel datagramChannel, List<SessionListener> listener, Disconnectable disconnectable) {
 
         this.id = id;
         this.socketChannel = socketChannel;
@@ -72,14 +74,14 @@ public class Session {
         this.disconnectable = disconnectable;
     }
 
-    public Session(int id, SocketChannel socketChannel, DatagramChannel datagramChannel, SessionListener listener) {
+    public Session(int id, SocketChannel socketChannel, DatagramChannel datagramChannel, List<SessionListener> listener) {
 
         this(id, socketChannel, datagramChannel, listener, null);
     }
 
     public void close() {
 
-        if(disconnectable != null) {
+        if (disconnectable != null) {
             disconnectable.disconnect();
         } else {
             try {
@@ -89,9 +91,9 @@ public class Session {
                 if (datagramChannel != null)
                     datagramChannel.disconnect();
             } catch (Exception e) {
-                listener.onException(this, e);
+                listener.forEach(sessionListener -> sessionListener.onException(this, e));
             } finally {
-                listener.onDisconnected(this);
+                listener.forEach(sessionListener -> sessionListener.onDisconnected(this));
             }
         }
     }
@@ -104,7 +106,7 @@ public class Session {
 
         try {
             read = socketChannel.read(tcpBuffer);
-            if(tcpBuffer.remaining() == 0) {
+            if (tcpBuffer.remaining() == 0) {
                 ByteBuffer temp = ByteBuffer.allocate(tcpBuffer.capacity() * BUFFER_GROW_FACTOR);
                 tcpBuffer.flip();
                 temp.put(tcpBuffer);
@@ -122,7 +124,7 @@ public class Session {
             read = -1;
         }
 
-        if(read == -1) {
+        if (read == -1) {
             close();
 
             return;
@@ -133,11 +135,11 @@ public class Session {
         while (tcpBuffer.remaining() > 0) {
             tcpBuffer.mark();
 
-            if(tcpBuffer.remaining() < 4)
+            if (tcpBuffer.remaining() < 4)
                 break;
 
             int readableBytes = tcpBuffer.getInt();
-            if(tcpBuffer.remaining() < readableBytes) {
+            if (tcpBuffer.remaining() < readableBytes) {
                 tcpBuffer.reset();
                 break;
             }
@@ -145,8 +147,8 @@ public class Session {
             byte[] bytes = new byte[readableBytes];
             tcpBuffer.get(bytes);
 
-            if(listener != null)
-                listener.onReceived(this, bytes, ProtocolType.TCP);
+
+            listener.forEach(sessionListener -> sessionListener.onReceived(this, bytes, ProtocolType.TCP));
         }
 
         tcpBuffer.compact();
@@ -161,16 +163,15 @@ public class Session {
                 byte[] bytes = new byte[udpBuffer.remaining()];
                 udpBuffer.get(bytes);
 
-                if(listener != null)
-                    listener.onReceived(this, bytes, ProtocolType.UDP);
+
+                listener.forEach(sessionListener -> sessionListener.onReceived(this, bytes, ProtocolType.UDP));
 
                 udpBuffer.clear();
             }
         } catch (IOException e) {
             close();
 
-            if(listener != null)
-                listener.onException(this,e);
+            listener.forEach(sessionListener -> sessionListener.onException(this, e));
         }
     }
 
@@ -186,8 +187,7 @@ public class Session {
         } catch (IOException e) {
             close();
 
-            if(listener != null)
-                listener.onException(this, e);
+            listener.forEach(sessionListener -> sessionListener.onException(this, e));
         }
     }
 
@@ -198,8 +198,7 @@ public class Session {
         } catch (IOException e) {
             close();
 
-            if(listener != null)
-                listener.onException(this, e);
+            listener.forEach(sessionListener -> sessionListener.onException(this, e));
         }
     }
 
@@ -218,9 +217,9 @@ public class Session {
         return datagramChannel;
     }
 
-    public SessionListener listener() {
+    public List<SessionListener> listener() {
 
-        return listener;
+        return Collections.unmodifiableList(listener);
     }
 
     public SocketAddress remoteAddress() {

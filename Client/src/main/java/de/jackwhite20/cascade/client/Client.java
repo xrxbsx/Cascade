@@ -27,7 +27,9 @@ import de.jackwhite20.cascade.shared.session.SessionListener;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.*;
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -48,8 +50,6 @@ public class Client implements Disconnectable {
 
     private Session session;
 
-    private SessionListener listener;
-
     private String host;
 
     private int port;
@@ -58,7 +58,6 @@ public class Client implements Disconnectable {
 
     public Client(CascadeSettings settings) {
 
-        this.listener = settings.listener();
         this.settings = settings;
     }
 
@@ -85,8 +84,7 @@ public class Client implements Disconnectable {
 
             new Thread(new ClientThread()).start();
         } catch (IOException e) {
-            if (listener != null)
-                listener.onException(session, e);
+            settings.listener().forEach(sessionListener -> sessionListener.onException(session, e));
         }
     }
 
@@ -135,8 +133,7 @@ public class Client implements Disconnectable {
             }
         }
 
-        if(listener != null)
-            listener.onDisconnected(session);
+        settings.listener().forEach(sessionListener -> sessionListener.onDisconnected(session));
     }
 
     public CascadeSettings settings() {
@@ -149,9 +146,9 @@ public class Client implements Disconnectable {
         return session;
     }
 
-    public SessionListener listener() {
+    public List<SessionListener> listener() {
 
-        return listener;
+        return Collections.unmodifiableList(settings.listener());
     }
 
     public String host() {
@@ -205,13 +202,12 @@ public class Client implements Disconnectable {
                             SelectionKey tcpRead = socketChannel.register(selector, SelectionKey.OP_READ);
                             SelectionKey udpRead = datagramChannel.register(selector, SelectionKey.OP_READ);
 
-                            session = new Session(ID_COUNTER.getAndIncrement(), socketChannel, datagramChannel, listener, Client.this);
+                            session = new Session(ID_COUNTER.getAndIncrement(), socketChannel, datagramChannel, settings.listener(), Client.this);
 
                             tcpRead.attach(session);
                             udpRead.attach(session);
 
-                            if(listener != null)
-                                listener.onConnected(session);
+                            settings.listener().forEach(sessionListener -> sessionListener.onConnected(session));
                         }
 
                         if(key.isValid() && key.isReadable()) {

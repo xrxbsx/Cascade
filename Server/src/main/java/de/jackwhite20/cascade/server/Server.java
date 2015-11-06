@@ -54,8 +54,6 @@ public class Server {
 
     private DatagramChannel serverDatagramChannel;
 
-    private SessionListener listener;
-
     private Selector selector;
 
     private AtomicInteger idCounter = new AtomicInteger(0);
@@ -69,7 +67,6 @@ public class Server {
     public Server(CascadeSettings settings) {
 
         this.settings = settings;
-        this.listener = settings.listener();
     }
 
     @SuppressWarnings("unchecked")
@@ -159,6 +156,10 @@ public class Server {
         return selectorThreads.get(next);
     }
 
+    public CascadeSettings settings() {
+
+        return settings;
+    }
 
     private class ServerThread implements Runnable {
 
@@ -225,12 +226,12 @@ public class Server {
 
                             int clientId = nextId();
 
-                            Session session = new Session(clientId, socketChannel, ((DatagramChannel) udpKey.channel()), listener);
+                            Session session = new Session(clientId, socketChannel, ((DatagramChannel) udpKey.channel()), settings.listener());
                             tcpKey.attach(session);
                             udpKey.attach(session);
 
-                            if(listener != null)
-                                listener.onConnected(session);
+                            if(!settings.listener().isEmpty())
+                                settings.listener().forEach(sessionListener -> sessionListener.onConnected(session));
                         }
                     }
 

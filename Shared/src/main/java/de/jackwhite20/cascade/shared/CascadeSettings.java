@@ -34,7 +34,7 @@ public class CascadeSettings {
 
     private int selectorCount = 2;
 
-    private SessionListener listener;
+    private List<SessionListener> listener = new ArrayList<>();
 
     private List<Option> options = new ArrayList<>();
 
@@ -48,7 +48,7 @@ public class CascadeSettings {
         return selectorCount;
     }
 
-    public SessionListener listener() {
+    public List<SessionListener> listener() {
 
         return listener;
     }
@@ -108,7 +108,7 @@ public class CascadeSettings {
 
         public Builder withListener(SessionListener listener) {
 
-            instance.listener = listener;
+            instance.listener.add(listener);
 
             return this;
         }
