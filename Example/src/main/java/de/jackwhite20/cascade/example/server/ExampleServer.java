@@ -19,8 +19,77 @@
 
 package de.jackwhite20.cascade.example.server;
 
+import de.jackwhite20.cascade.server.Server;
+import de.jackwhite20.cascade.shared.CascadeSettings;
+import de.jackwhite20.cascade.shared.session.ProtocolType;
+import de.jackwhite20.cascade.shared.session.Session;
+import de.jackwhite20.cascade.shared.session.SessionListenerAdapter;
+
 /**
  * Created by JackWhite20 on 07.11.2015.
  */
-public class ExampleServer {
+public class ExampleServer extends SessionListenerAdapter {
+
+    public static void main(String[] args) {
+
+        new ExampleServer("0.0.0.0", 12345).start();
+    }
+
+    private String host;
+
+    private int port;
+
+    private Server server;
+
+    public ExampleServer(String host, int port) {
+
+        this.host = host;
+        this.port = port;
+    }
+
+    public void start() {
+
+        server = new Server(new CascadeSettings.Builder()
+                .withBackLog(200)
+                .withSelectorCount(4)
+                .withListener(this)
+                .build());
+
+        try {
+            server.bind(host, port);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        System.out.println("Server started!");
+    }
+
+    @Override
+    public void onException(Session session, Throwable throwable) {
+
+        System.err.println("Exception from " + session.id() + ":");
+        throwable.printStackTrace();
+    }
+
+    @Override
+    public void onReceived(Session session, byte[] buffer, ProtocolType protocolType) {
+
+        if(protocolType == ProtocolType.UDP) {
+            session.sendUnreliable(buffer);
+        }else {
+            session.sendReliable(buffer);
+        }
+    }
+
+    @Override
+    public void onDisconnected(Session session) {
+
+        System.out.println(session.id() + " disconnected!");
+    }
+
+    @Override
+    public void onConnected(Session session) {
+
+        System.out.println(session.id() + " connected!");
+    }
 }

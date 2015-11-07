@@ -30,5 +30,12 @@
 
     <artifactId>cascade-example</artifactId>
 
-
+    <dependencies>
+        <!-- Cascade -->
+        <dependency>
+            <groupId>de.jackwhite20</groupId>
+            <artifactId>cascade-all</artifactId>
+            <version>0.1-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
 </project>
