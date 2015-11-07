@@ -13,7 +13,7 @@ Cascade is a simple but powerful event driven network framework.
 - Clone/Download this repo
 - Install it with: ```mvn clean install```
 
-** Maven dependency **
+**Maven dependency**
 ```xml
 <dependency>
     <groupId>de.jackwhite20</groupId>
