@@ -4,9 +4,10 @@ Cascade is a simple but powerful event driven network framework.
 ## Why Cascade?
 
 - easy to use
+- fast setup
 - lightweight
 - simple API design
-- NIO
+- powerful NIO implementation
 - UDP and TCP support
 
 ## Installation
@@ -32,4 +33,5 @@ If you dont't want the client and the server in your project you can use **casca
 - [Echo-Client](https://github.com/JackWhite20/Cascade/blob/master/Example/src/main/java/de/jackwhite20/cascade/example/client/ExampleClient.java)
 
 ### License
+
 Licensed under the GNU General Public License, Version 3.0.
