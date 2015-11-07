@@ -22,6 +22,8 @@ package de.jackwhite20.cascade.example.client;
 import de.jackwhite20.cascade.client.Client;
 import de.jackwhite20.cascade.shared.CascadeSettings;
 
+import java.net.StandardSocketOptions;
+
 /**
  * Created by JackWhite20 on 07.11.2015.
  */
@@ -48,7 +50,11 @@ public class ExampleClient {
 
     public void connect() {
 
-        client = new Client(new CascadeSettings.Builder().withListener(new ClientListener(connectLock)).build());
+        client = new Client(new CascadeSettings.Builder()
+                .withListener(new ClientListener(connectLock))
+                // You can also enable TCP_NODELAY like so
+                .withOption(StandardSocketOptions.TCP_NODELAY, true)
+                .build());
 
         client.connect(host, port);
 

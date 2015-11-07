@@ -25,6 +25,8 @@ import de.jackwhite20.cascade.shared.session.ProtocolType;
 import de.jackwhite20.cascade.shared.session.Session;
 import de.jackwhite20.cascade.shared.session.SessionListenerAdapter;
 
+import java.net.StandardSocketOptions;
+
 /**
  * Created by JackWhite20 on 07.11.2015.
  */
@@ -53,6 +55,8 @@ public class ExampleServer extends SessionListenerAdapter {
                 .withBackLog(200)
                 .withSelectorCount(4)
                 .withListener(this)
+                // You can also enable TCP_NODELAY like so
+                .withOption(StandardSocketOptions.TCP_NODELAY, true)
                 .build());
 
         try {
