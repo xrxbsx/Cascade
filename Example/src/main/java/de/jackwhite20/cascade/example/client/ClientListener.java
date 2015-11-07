@@ -17,10 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.jackwhite20.cascade.example.server;
+package de.jackwhite20.cascade.example.client;
 
-import de.jackwhite20.cascade.server.Server;
-import de.jackwhite20.cascade.shared.CascadeSettings;
 import de.jackwhite20.cascade.shared.session.ProtocolType;
 import de.jackwhite20.cascade.shared.session.Session;
 import de.jackwhite20.cascade.shared.session.SessionListenerAdapter;
@@ -28,40 +26,13 @@ import de.jackwhite20.cascade.shared.session.SessionListenerAdapter;
 /**
  * Created by JackWhite20 on 07.11.2015.
  */
-public class ExampleServer extends SessionListenerAdapter {
+public class ClientListener extends SessionListenerAdapter {
 
-    public static void main(String[] args) {
+    private final Object connectLock;
 
-        new ExampleServer("0.0.0.0", 12345).start();
-    }
+    public ClientListener(Object connectLock) {
 
-    private String host;
-
-    private int port;
-
-    private Server server;
-
-    public ExampleServer(String host, int port) {
-
-        this.host = host;
-        this.port = port;
-    }
-
-    public void start() {
-
-        server = new Server(new CascadeSettings.Builder()
-                .withBackLog(200)
-                .withSelectorCount(4)
-                .withListener(this)
-                .build());
-
-        try {
-            server.bind(host, port);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        System.out.println("Server started!");
+        this.connectLock = connectLock;
     }
 
     @Override
@@ -74,24 +45,22 @@ public class ExampleServer extends SessionListenerAdapter {
     @Override
     public void onReceived(Session session, byte[] buffer, ProtocolType protocolType) {
 
-        System.out.println("Received from Client " + session.id() + ": " + new String(buffer));
+        System.out.println("Received from Server: " + new String(buffer));
 
-        if(protocolType == ProtocolType.UDP) {
-            session.sendUnreliable(buffer);
-        }else {
-            session.sendReliable(buffer);
-        }
+        session.close();
     }
 
     @Override
     public void onDisconnected(Session session) {
 
-        System.out.println(session.id() + " disconnected!");
+        System.out.println("Disconnected!");
     }
 
     @Override
     public void onConnected(Session session) {
 
-        System.out.println(session.id() + " connected!");
+        synchronized (connectLock) {
+            connectLock.notify();
+        }
     }
 }

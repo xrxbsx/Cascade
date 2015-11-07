@@ -19,8 +19,51 @@
 
 package de.jackwhite20.cascade.example.client;
 
+import de.jackwhite20.cascade.client.Client;
+import de.jackwhite20.cascade.shared.CascadeSettings;
+
 /**
  * Created by JackWhite20 on 07.11.2015.
  */
 public class ExampleClient {
+
+    public static void main(String[] args) {
+
+        new ExampleClient("localhost", 12345).connect();
+    }
+
+    private String host;
+
+    private int port;
+
+    private Client client;
+
+    private final Object connectLock =  new Object();
+
+    public ExampleClient(String host, int port) {
+
+        this.host = host;
+        this.port = port;
+    }
+
+    public void connect() {
+
+        client = new Client(new CascadeSettings.Builder().withListener(new ClientListener(connectLock)).build());
+
+        client.connect(host, port);
+
+        synchronized (connectLock) {
+            try {
+                connectLock.wait();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        System.out.println("Connected!");
+
+        String message = "Hey my friend.";
+        System.out.println("Sending to Server: " + message);
+        client.sendReliable(message.getBytes());
+    }
 }
