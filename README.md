@@ -2,6 +2,7 @@
 Cascade is a simple but powerful event driven network framework.
 
 ## Why Cascade?
+
 - easy to use
 - lightweight
 - simple API design
@@ -9,6 +10,7 @@ Cascade is a simple but powerful event driven network framework.
 - UDP and TCP support
 
 ## Installation
+
 - Install [Maven 3](http://maven.apache.org/download.cgi)
 - Clone/Download this repo
 - Install it with: ```mvn clean install```
@@ -21,6 +23,8 @@ Cascade is a simple but powerful event driven network framework.
     <version>0.1-SNAPSHOT</version>
 </dependency>
 ```
+
+If you dont't want the client and the server in your project you can use **cascade-client** or **cascade-server** as artifact id as well.
 
 ##  Examples
 
