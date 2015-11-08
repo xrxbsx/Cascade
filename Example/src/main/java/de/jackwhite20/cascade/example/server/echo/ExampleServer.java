@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.jackwhite20.cascade.example.server;
+package de.jackwhite20.cascade.example.server.echo;
 
 import de.jackwhite20.cascade.server.Server;
 import de.jackwhite20.cascade.shared.CascadeSettings;

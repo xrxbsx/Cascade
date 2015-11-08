@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.jackwhite20.cascade.example.client;
+package de.jackwhite20.cascade.example.client.echo;
 
 import de.jackwhite20.cascade.client.Client;
 import de.jackwhite20.cascade.shared.CascadeSettings;
