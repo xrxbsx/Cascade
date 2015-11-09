@@ -56,11 +56,22 @@ public class Client implements Disconnectable {
 
     private boolean running = false;
 
+    /**
+     * Creates a new instance with the given settings.
+     *
+     * @param settings the settings.
+     */
     public Client(CascadeSettings settings) {
 
         this.settings = settings;
     }
 
+    /**
+     * Connects the client to the remote host.
+     *
+     * @param host the host ip.
+     * @param port the host port.
+     */
     @SuppressWarnings("unchecked")
     public void connect(String host, int port) {
 
@@ -88,21 +99,39 @@ public class Client implements Disconnectable {
         }
     }
 
+    /**
+     * Connects the client to the remote host.
+     *
+     * @param address the host address.
+     */
     public void connect(InetSocketAddress address) {
 
         connect(address.getHostName(), address.getPort());
     }
 
+    /**
+     * Sends the given byte array over TCP.
+     *
+     * @param buffer the data.
+     */
     public void sendReliable(byte[] buffer) {
 
         session.sendReliable(buffer);
     }
 
+    /**
+     * Sends the given byte array over UDP.
+     *
+     * @param buffer the data.
+     */
     public void sendUnreliable(byte[] buffer) {
 
         session.sendUnreliable(buffer);
     }
 
+    /**
+     * Disconnects the client.
+     */
     public void disconnect() {
 
         running = false;
@@ -136,31 +165,61 @@ public class Client implements Disconnectable {
         settings.listener().forEach(sessionListener -> sessionListener.onDisconnected(session));
     }
 
+    /**
+     * Returns the cascade settings.
+     *
+     * @return the settings.
+     */
     public CascadeSettings settings() {
 
         return settings;
     }
 
+    /**
+     * Returns the current client session.
+     *
+     * @return the session.
+     */
     public Session session() {
 
         return session;
     }
 
+    /**
+     * Returns the session listener from this client.
+     *
+     * @return the listeners as an unmodifiable list.
+     */
     public List<SessionListener> listener() {
 
         return Collections.unmodifiableList(settings.listener());
     }
 
+    /**
+     * Returns the hosts ip.
+     *
+     * @return the ip.
+     */
     public String host() {
 
         return host;
     }
 
+    /**
+     * Returns the hosts port.
+     *
+     * @return the port.
+     */
     public int port() {
 
         return port;
     }
 
+    /**
+     * Returns whether this client is connected and running.
+     *
+     * @return true or false.
+     */
     public boolean running() {
 
         return running;

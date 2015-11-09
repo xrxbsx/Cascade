@@ -81,10 +81,21 @@ public class CascadeSettings {
         }
     }
 
+
+    /**
+     * Represents a class to easily build a settings object.
+     */
     public static class Builder {
 
         private CascadeSettings instance = new CascadeSettings();
 
+        /**
+         * Adds a socket option with the value.
+         *
+         * @param socketOption a StandardSocketOptions value.
+         * @param value the value.
+         * @return the builder.
+         */
         public <T> Builder withOption(SocketOption<T> socketOption, T value) {
 
             instance.options.add(new Option<>(socketOption, value));
@@ -92,6 +103,13 @@ public class CascadeSettings {
             return this;
         }
 
+        /**
+         * Sets the backlog.
+         * Will only take effect on a server.
+         *
+         * @param backLog the backlog.
+         * @return the builder.
+         */
         public Builder withBackLog(int backLog) {
 
             instance.backLog = backLog;
@@ -99,6 +117,12 @@ public class CascadeSettings {
             return this;
         }
 
+        /**
+         * Sets the count of the selectors (thread count that handles IO from clients).
+         *
+         * @param selectorCount the count.
+         * @return the builder.
+         */
         public Builder withSelectorCount(int selectorCount) {
 
             instance.selectorCount = selectorCount;
@@ -106,6 +130,12 @@ public class CascadeSettings {
             return this;
         }
 
+        /**
+         * Adds a session listener.
+         *
+         * @param listener the listener.
+         * @return the builder.
+         */
         public Builder withListener(SessionListener listener) {
 
             instance.listener.add(listener);
@@ -113,6 +143,11 @@ public class CascadeSettings {
             return this;
         }
 
+        /**
+         * Returns the CascadeSettings object with the values.
+         *
+         * @return the settings object.
+         */
         public CascadeSettings build() {
 
             return instance;
