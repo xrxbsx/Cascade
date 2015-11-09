@@ -30,7 +30,7 @@ import java.util.List;
  */
 public class CascadeSettings {
 
-    private int backLog;
+    private int backLog = 25;
 
     private int selectorCount = 2;
 
