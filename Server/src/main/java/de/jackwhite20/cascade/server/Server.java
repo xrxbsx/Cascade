@@ -64,11 +64,22 @@ public class Server {
 
     private ReentrantLock selectorLock = new ReentrantLock();
 
+    /**
+     * Creates a new server with the given settings.
+     *
+     * @param settings the settings.
+     */
     public Server(CascadeSettings settings) {
 
         this.settings = settings;
     }
 
+    /**
+     * Binds the server to the specified address.
+     *
+     * @param inetSocketAddress the address.
+     * @throws Exception if some IO error occurs.
+     */
     @SuppressWarnings("unchecked")
     public void bind(InetSocketAddress inetSocketAddress) throws Exception {
 
@@ -100,11 +111,21 @@ public class Server {
         }
     }
 
+    /**
+     * Binds the server so host
+     *
+     * @param host the host ip.
+     * @param port the host port.
+     * @throws Exception if some IO error occurs.
+     */
     public void bind(String host, int port) throws Exception {
 
         bind(new InetSocketAddress(host, port));
     }
 
+    /**
+     * Shuts the server down an closes all socket channels and connections.
+     */
     public void shutdown() {
 
         running = false;
@@ -156,6 +177,11 @@ public class Server {
         return selectorThreads.get(next);
     }
 
+    /**
+     * Returns the settings.
+     *
+     * @return the settings.
+     */
     public CascadeSettings settings() {
 
         return settings;
