@@ -51,15 +51,20 @@ public class ExampleServer extends SessionListenerAdapter {
 
     public void start() {
 
+        // Create a new instance of Server and parse in CascadeSettings
         server = new Server(new CascadeSettings.Builder()
+                // Set the backlog from the server to 200
                 .withBackLog(200)
+                // Set the count of threads that will handle read operations
                 .withSelectorCount(4)
+                // Set the session listener
                 .withListener(this)
                 // You can also enable TCP_NODELAY like so
                 .withOption(StandardSocketOptions.TCP_NODELAY, true)
                 .build());
 
         try {
+            // Bind the server to the address and port and start listening
             server.bind(host, port);
         } catch (Exception e) {
             e.printStackTrace();
@@ -80,6 +85,7 @@ public class ExampleServer extends SessionListenerAdapter {
 
         System.out.println("Received from Client " + session.id() + ": " + new String(buffer));
 
+        // Send back the data with the same protocol type
         if(protocolType == ProtocolType.UDP) {
             session.sendUnreliable(buffer);
         }else {

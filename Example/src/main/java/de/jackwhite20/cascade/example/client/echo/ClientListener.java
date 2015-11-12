@@ -47,6 +47,7 @@ public class ClientListener extends SessionListenerAdapter {
 
         System.out.println("Received from Server: " + new String(buffer));
 
+        // Closes the session of the client
         session.close();
     }
 

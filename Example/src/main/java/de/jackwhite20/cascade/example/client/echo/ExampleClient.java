@@ -50,12 +50,15 @@ public class ExampleClient {
 
     public void connect() {
 
+        // Create a new instance of Client and parse in CascadeSettings
         client = new Client(new CascadeSettings.Builder()
+                // Add a new session listener to handle incoming packets
                 .withListener(new ClientListener(connectLock))
                 // You can also enable TCP_NODELAY like so
                 .withOption(StandardSocketOptions.TCP_NODELAY, true)
                 .build());
 
+        // Connect the the host ip and port
         client.connect(host, port);
 
         synchronized (connectLock) {
@@ -70,6 +73,7 @@ public class ExampleClient {
 
         String message = "Hey my friend.";
         System.out.println("Sending to Server: " + message);
+        // Send the message reliable (TCP) to the server
         client.sendReliable(message.getBytes());
     }
 }
