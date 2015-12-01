@@ -38,7 +38,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class Client implements Disconnectable {
 
-    public static final AtomicInteger ID_COUNTER = new AtomicInteger(0);
+    private static final AtomicInteger ID_COUNTER = new AtomicInteger(0);
 
     private CascadeSettings settings;
 
@@ -56,6 +56,8 @@ public class Client implements Disconnectable {
 
     private boolean running = false;
 
+    private Object waitObject = new Object();
+
     /**
      * Creates a new instance with the given settings.
      *
@@ -72,7 +74,7 @@ public class Client implements Disconnectable {
      * @param host the host ip.
      * @param port the host port.
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings("all")
     public void connect(String host, int port) {
 
         this.host = host;
@@ -94,7 +96,16 @@ public class Client implements Disconnectable {
             running = true;
 
             new Thread(new ClientThread()).start();
+
+            synchronized (waitObject) {
+                try {
+                    waitObject.wait();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
         } catch (IOException e) {
+            notifyWaitObject();
             settings.listener().forEach(sessionListener -> sessionListener.onException(session, e));
         }
     }
@@ -163,6 +174,17 @@ public class Client implements Disconnectable {
         }
 
         settings.listener().forEach(sessionListener -> sessionListener.onDisconnected(session));
+    }
+
+    /**
+     * Notifies the waitObject that is probably waiting.
+     */
+    @SuppressWarnings("all")
+    private void notifyWaitObject() {
+
+        synchronized (waitObject) {
+            waitObject.notify();
+        }
     }
 
     /**
@@ -266,6 +288,8 @@ public class Client implements Disconnectable {
                             tcpRead.attach(session);
                             udpRead.attach(session);
 
+                            notifyWaitObject();
+
                             settings.listener().forEach(sessionListener -> sessionListener.onConnected(session));
                         }
 
@@ -284,6 +308,7 @@ public class Client implements Disconnectable {
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
+                    notifyWaitObject();
                     break;
                 }
             }
