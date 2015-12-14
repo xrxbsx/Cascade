@@ -58,6 +58,8 @@ public class Client implements Disconnectable {
 
     private Object waitObject = new Object();
 
+    private boolean connected = false;
+
     /**
      * Creates a new instance with the given settings.
      *
@@ -73,9 +75,11 @@ public class Client implements Disconnectable {
      *
      * @param host the host ip.
      * @param port the host port.
+     *
+     * @return true if it has succesfully connected and is running.
      */
     @SuppressWarnings("all")
-    public void connect(String host, int port) {
+    public boolean connect(String host, int port) {
 
         this.host = host;
         this.port = port;
@@ -104,10 +108,15 @@ public class Client implements Disconnectable {
                     e.printStackTrace();
                 }
             }
+
+            return connected;
         } catch (IOException e) {
-            notifyWaitObject();
             settings.listener().forEach(sessionListener -> sessionListener.onException(session, e));
+            connected = false;
+            notifyWaitObject();
         }
+
+        return false;
     }
 
     /**
@@ -247,6 +256,16 @@ public class Client implements Disconnectable {
         return running;
     }
 
+    /**
+     * Returns whether this client is successfully connected to the remote side.
+     *
+     * @return true or false.
+     */
+    public boolean connected() {
+
+        return connected;
+    }
+
     private class ClientThread implements Runnable {
 
         @Override
@@ -288,6 +307,8 @@ public class Client implements Disconnectable {
                             tcpRead.attach(session);
                             udpRead.attach(session);
 
+                            connected = true;
+
                             notifyWaitObject();
 
                             settings.listener().forEach(sessionListener -> sessionListener.onConnected(session));
@@ -307,7 +328,8 @@ public class Client implements Disconnectable {
                         }
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    connected = false;
+                    settings.listener().forEach(sessionListener -> sessionListener.onException(session, e));
                     notifyWaitObject();
                     break;
                 }
