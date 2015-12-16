@@ -40,8 +40,6 @@ public class ExampleClient {
 
     private Client client;
 
-    private final Object connectLock =  new Object();
-
     public ExampleClient(String host, int port) {
 
         this.host = host;
@@ -53,20 +51,15 @@ public class ExampleClient {
         // Create a new instance of Client and parse in CascadeSettings
         client = new Client(new CascadeSettings.Builder()
                 // Add a new session listener to handle incoming packets
-                .withListener(new ClientListener(connectLock))
+                .withListener(new ClientListener())
                 // You can also enable TCP_NODELAY like so
                 .withOption(StandardSocketOptions.TCP_NODELAY, true)
                 .build());
 
-        // Connect the the host ip and port
-        client.connect(host, port);
-
-        synchronized (connectLock) {
-            try {
-                connectLock.wait();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+        // Connect the the host ip and port and set the timeout to 2000
+        if (!client.connect(host, port, 2000)) {
+            System.err.println("Could not connect to " + host + ":" + port);
+            return;
         }
 
         System.out.println("Connected!");

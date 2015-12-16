@@ -59,13 +59,13 @@ public class ExampleServer extends SessionListenerAdapter {
                 .withSelectorCount(4)
                 // Set the session listener
                 .withListener(this)
-                // You can also enable TCP_NODELAY like so
+                // You can also enable TCP_NODELAY like this
                 .withOption(StandardSocketOptions.TCP_NODELAY, true)
                 .build());
 
         try {
             // Bind the server to the address and port and start listening
-            server.bind(host, port);
+            server.bind(host, port, 2000);
         } catch (Exception e) {
             e.printStackTrace();
         }

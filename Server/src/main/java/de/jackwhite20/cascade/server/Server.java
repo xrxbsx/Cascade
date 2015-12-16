@@ -64,6 +64,8 @@ public class Server {
 
     private ReentrantLock selectorLock = new ReentrantLock();
 
+    private int timeout;
+
     /**
      * Creates a new server with the given settings.
      *
@@ -78,16 +80,18 @@ public class Server {
      * Binds the server to the specified address.
      *
      * @param inetSocketAddress the address.
+     * @param timeout the timeout in milliseconds.
      * @throws Exception if some IO error occurs.
      */
     @SuppressWarnings("unchecked")
-    public void bind(InetSocketAddress inetSocketAddress) throws Exception {
+    public void bind(InetSocketAddress inetSocketAddress, int timeout) throws Exception {
 
         this.inetSocketAddress = inetSocketAddress;
+        this.timeout = timeout;
 
         serverSocketChannel = ServerSocketChannel.open();
         serverSocketChannel.configureBlocking(false);
-        serverSocketChannel.socket().setSoTimeout(0);
+        serverSocketChannel.socket().setSoTimeout(timeout);
 
         serverDatagramChannel = DatagramChannel.open();
         serverDatagramChannel.configureBlocking(false);
@@ -112,7 +116,33 @@ public class Server {
     }
 
     /**
+     * Binds the server to the specified address.
+     * The timeout is set to 10 minutes.
+     *
+     * @param inetSocketAddress the address.
+     * @throws Exception if some IO error occurs.
+     */
+    public void bind(InetSocketAddress inetSocketAddress) throws Exception {
+
+        bind(inetSocketAddress, 600000);
+    }
+
+    /**
      * Binds the server so host
+     *
+     * @param host the host ip.
+     * @param port the host port.
+     * @param timeout the timeout in milliseconds.
+     * @throws Exception if some IO error occurs.
+     */
+    public void bind(String host, int port, int timeout) throws Exception {
+
+        bind(new InetSocketAddress(host, port), timeout);
+    }
+
+    /**
+     * Binds the server so host
+     * The timeout is set to 10 minutes.
      *
      * @param host the host ip.
      * @param port the host port.
@@ -120,7 +150,7 @@ public class Server {
      */
     public void bind(String host, int port) throws Exception {
 
-        bind(new InetSocketAddress(host, port));
+        bind(host, port, 600000);
     }
 
     /**
@@ -178,6 +208,16 @@ public class Server {
     }
 
     /**
+     * Returns the timeout in milliseconds.
+     *
+     * @return the timeout.
+     */
+    public int timeout() {
+
+        return timeout;
+    }
+
+    /**
      * Returns the settings.
      *
      * @return the settings.
@@ -218,10 +258,10 @@ public class Server {
                                 continue;
 
                             socketChannel.configureBlocking(false);
-                            socketChannel.socket().setSoTimeout(0);
                             for (CascadeSettings.Option option : settings.options()) {
                                 socketChannel.setOption(option.socketOption(), option.value());
                             }
+                            socketChannel.socket().setSoTimeout(timeout);
 
                             SelectorThread selectorThread = nextSelector();
                             Selector nextSelector = selectorThread.selector();
@@ -231,7 +271,7 @@ public class Server {
                             // Important
                             nextSelector.wakeup();
 
-                            SelectionKey tcpKey = null;
+                            SelectionKey tcpKey;
                             try {
                                 tcpKey = socketChannel.register(nextSelector, SelectionKey.OP_READ);
                             } catch (Exception e) {
@@ -239,7 +279,7 @@ public class Server {
                                 e.printStackTrace();
                                 continue;
                             }
-                            SelectionKey udpKey = null;
+                            SelectionKey udpKey;
                             try {
                                 udpKey = serverDatagramChannel.register(nextSelector, SelectionKey.OP_READ);
                             } catch (Exception e) {

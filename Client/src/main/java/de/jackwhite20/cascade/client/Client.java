@@ -60,6 +60,8 @@ public class Client implements Disconnectable {
 
     private boolean connected = false;
 
+    private int timeout;
+
     /**
      * Creates a new instance with the given settings.
      *
@@ -75,24 +77,26 @@ public class Client implements Disconnectable {
      *
      * @param host the host ip.
      * @param port the host port.
+     * @param timeout the timeout in milliseconds.
      *
      * @return true if it has succesfully connected and is running.
      */
     @SuppressWarnings("all")
-    public boolean connect(String host, int port) {
+    public boolean connect(String host, int port, int timeout) {
 
         this.host = host;
         this.port = port;
+        this.timeout = timeout;
 
         try {
             selector = Selector.open();
             socketChannel = SocketChannel.open();
             socketChannel.configureBlocking(false);
 
-            socketChannel.socket().setSoTimeout(0);
             for (CascadeSettings.Option option : settings.options()) {
                 socketChannel.setOption(option.socketOption(), option.value());
             }
+            socketChannel.socket().setSoTimeout(timeout);
 
             socketChannel.connect(new InetSocketAddress(host, port));
             socketChannel.register(selector, SelectionKey.OP_CONNECT);
@@ -121,12 +125,38 @@ public class Client implements Disconnectable {
 
     /**
      * Connects the client to the remote host.
+     * The timeout is set to 10 minutes.
+     *
+     * @param host the host ip.
+     * @param port the host port.
+     *
+     * @return true if it has succesfully connected and is running.
+     */
+    public boolean connect(String host, int port) {
+
+        return connect(host, port, 600000);
+    }
+
+    /**
+     * Connects the client to the remote host.
+     *
+     * @param address the host address.
+     * @param timeout the timeout in milliseconds.
+     */
+    public boolean connect(InetSocketAddress address, int timeout) {
+
+        return connect(address.getHostName(), address.getPort(), timeout);
+    }
+
+    /**
+     * Connects the client to the remote host.
+     * The timeout is set to 10 minutes.
      *
      * @param address the host address.
      */
-    public void connect(InetSocketAddress address) {
+    public boolean connect(InetSocketAddress address) {
 
-        connect(address.getHostName(), address.getPort());
+        return connect(address, 600000);
     }
 
     /**
@@ -264,6 +294,16 @@ public class Client implements Disconnectable {
     public boolean connected() {
 
         return connected;
+    }
+
+    /**
+     * Returns the timeout in milliseconds.
+     *
+     * @return the timeout.
+     */
+    public int timeout() {
+
+        return timeout;
     }
 
     private class ClientThread implements Runnable {

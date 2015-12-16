@@ -28,13 +28,6 @@ import de.jackwhite20.cascade.shared.session.SessionListenerAdapter;
  */
 public class ClientListener extends SessionListenerAdapter {
 
-    private final Object connectLock;
-
-    public ClientListener(Object connectLock) {
-
-        this.connectLock = connectLock;
-    }
-
     @Override
     public void onException(Session session, Throwable throwable) {
 
@@ -55,13 +48,5 @@ public class ClientListener extends SessionListenerAdapter {
     public void onDisconnected(Session session) {
 
         System.out.println("Disconnected!");
-    }
-
-    @Override
-    public void onConnected(Session session) {
-
-        synchronized (connectLock) {
-            connectLock.notify();
-        }
     }
 }
