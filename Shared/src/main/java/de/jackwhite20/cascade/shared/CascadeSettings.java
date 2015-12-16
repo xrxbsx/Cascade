@@ -38,6 +38,8 @@ public class CascadeSettings {
 
     private List<Option> options = new ArrayList<>();
 
+    private int compressionThreshold = 1000;
+
     public int backLog() {
 
         return backLog;
@@ -56,6 +58,11 @@ public class CascadeSettings {
     public List<Option> options() {
 
         return options;
+    }
+
+    public int compressionThreshold() {
+
+        return compressionThreshold;
     }
 
     public static class Option<T> {
@@ -139,6 +146,20 @@ public class CascadeSettings {
         public Builder withListener(SessionListener listener) {
 
             instance.listener.add(listener);
+
+            return this;
+        }
+
+        /**
+         * Sets the compression threshold when it should compress data.
+         * The default is a length of 1000 bytes.
+         *
+         * @param compressionThreshold the compression threshold.
+         * @return the builder.
+         */
+        public Builder withCompressionThreshold(int compressionThreshold) {
+
+            instance.compressionThreshold = compressionThreshold;
 
             return this;
         }

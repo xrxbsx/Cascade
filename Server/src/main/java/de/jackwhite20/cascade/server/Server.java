@@ -292,7 +292,7 @@ public class Server {
 
                             int clientId = nextId();
 
-                            Session session = new Session(clientId, socketChannel, ((DatagramChannel) udpKey.channel()), settings.listener());
+                            Session session = new Session(clientId, socketChannel, ((DatagramChannel) udpKey.channel()), settings.listener(), settings.compressionThreshold());
                             tcpKey.attach(session);
                             udpKey.attach(session);
 

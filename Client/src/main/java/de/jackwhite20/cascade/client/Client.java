@@ -79,7 +79,7 @@ public class Client implements Disconnectable {
      * @param port the host port.
      * @param timeout the timeout in milliseconds.
      *
-     * @return true if it has succesfully connected and is running.
+     * @return true if it has successfully connected and is running.
      */
     @SuppressWarnings("all")
     public boolean connect(String host, int port, int timeout) {
@@ -342,7 +342,7 @@ public class Client implements Disconnectable {
                             SelectionKey tcpRead = socketChannel.register(selector, SelectionKey.OP_READ);
                             SelectionKey udpRead = datagramChannel.register(selector, SelectionKey.OP_READ);
 
-                            session = new Session(ID_COUNTER.getAndIncrement(), socketChannel, datagramChannel, settings.listener(), Client.this);
+                            session = new Session(ID_COUNTER.getAndIncrement(), socketChannel, datagramChannel, settings.listener(), Client.this, settings.compressionThreshold());
 
                             tcpRead.attach(session);
                             udpRead.attach(session);
