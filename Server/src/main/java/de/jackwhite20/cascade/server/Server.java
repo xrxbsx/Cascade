@@ -23,7 +23,6 @@ import de.jackwhite20.cascade.server.selector.SelectorThread;
 import de.jackwhite20.cascade.server.selector.SelectorThreadFactory;
 import de.jackwhite20.cascade.shared.CascadeSettings;
 import de.jackwhite20.cascade.shared.session.Session;
-import de.jackwhite20.cascade.shared.session.SessionListener;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
