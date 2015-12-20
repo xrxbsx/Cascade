@@ -11,6 +11,7 @@ Cascade is in an stable state and tested.
 - simple API design
 - powerful NIO implementation
 - UDP and TCP support
+- buffer pooling (in progress)
 
 ## Installation
 
