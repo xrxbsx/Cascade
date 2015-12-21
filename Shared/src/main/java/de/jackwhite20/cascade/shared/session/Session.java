@@ -61,6 +61,8 @@ public class Session {
 
     private int compressionThreshold;
 
+    private boolean disconnected = false;
+
     public Session(int id, SocketChannel socketChannel, DatagramChannel datagramChannel, List<SessionListener> listener, Disconnectable disconnectable, int compressionThreshold) {
 
         this.id = id;
@@ -87,6 +89,10 @@ public class Session {
 
     public void close() {
 
+        // Don't call onDisconnected twice
+        if(disconnected)
+            return;
+
         if (disconnectable != null) {
             disconnectable.disconnect();
         } else {
@@ -95,13 +101,15 @@ public class Session {
                     socketChannel.close();
 
                 if (datagramChannel != null)
-                    datagramChannel.disconnect();
+                    datagramChannel.close();
             } catch (Exception e) {
                 listener.forEach(sessionListener -> sessionListener.onException(this, e));
             } finally {
                 listener.forEach(sessionListener -> sessionListener.onDisconnected(this));
             }
         }
+
+        disconnected = true;
     }
 
     public void readSocket() {
