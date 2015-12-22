@@ -101,7 +101,7 @@ public class Session {
                     socketChannel.close();
 
                 if (datagramChannel != null)
-                    datagramChannel.close();
+                    datagramChannel.disconnect();
             } catch (Exception e) {
                 listener.forEach(sessionListener -> sessionListener.onException(this, e));
             } finally {

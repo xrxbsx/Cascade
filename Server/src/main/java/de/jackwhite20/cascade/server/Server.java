@@ -155,7 +155,7 @@ public class Server {
     /**
      * Shuts the server down an closes all socket channels and connections.
      */
-    public void shutdown() {
+    public void stop() {
 
         running = false;
 
