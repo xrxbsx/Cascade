@@ -11,6 +11,8 @@ Cascade is in an stable state and tested.
 - simple API design
 - powerful NIO implementation
 - UDP and TCP support
+- packets
+- protocol system
 - buffer pooling (in progress)
 
 ## Installation
@@ -30,10 +32,16 @@ Cascade is in an stable state and tested.
 
 If you dont't want the client and the server in your project you can use **cascade-client** or **cascade-server** as artifact id as well.
 
-##  Examples
+## Examples
 
-- [Echo-Server](https://github.com/JackWhite20/Cascade/blob/master/Example/src/main/java/de/jackwhite20/cascade/example/server/ExampleServer.java)
-- [Echo-Client](https://github.com/JackWhite20/Cascade/blob/master/Example/src/main/java/de/jackwhite20/cascade/example/client/ExampleClient.java)
+### Echo-Server
+- [EchoServer](https://github.com/JackWhite20/Cascade/blob/master/Example/src/main/java/de/jackwhite20/cascade/example/server/echo/EchoServer.java)
+- [EchoServerProtocol](https://github.com/JackWhite20/Cascade/blob/master/Example/src/main/java/de/jackwhite20/cascade/example/server/echo/EchoServerProtocol.java)
+
+### Echo-Client
+- [EchoClient](https://github.com/JackWhite20/Cascade/blob/master/Example/src/main/java/de/jackwhite20/cascade/example/client/echo/EchoClient.java)
+- [EchoClientProtocol](https://github.com/JackWhite20/Cascade/blob/master/Example/src/main/java/de/jackwhite20/cascade/example/client/echo/EchoClientProtocol.java)
+- [EchoClientPacketListener](https://github.com/JackWhite20/Cascade/blob/master/Example/src/main/java/de/jackwhite20/cascade/example/client/echo/EchoClientPacketListener.java)
 
 ### License
 
