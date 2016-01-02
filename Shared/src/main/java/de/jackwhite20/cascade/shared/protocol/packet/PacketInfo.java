@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.jackwhite20.cascade.shared.protocol;
+package de.jackwhite20.cascade.shared.protocol.packet;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

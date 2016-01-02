@@ -22,6 +22,8 @@ package de.jackwhite20.cascade.shared.protocol;
 import de.jackwhite20.cascade.shared.protocol.listener.Listeners;
 import de.jackwhite20.cascade.shared.protocol.listener.PacketHandler;
 import de.jackwhite20.cascade.shared.protocol.listener.PacketListener;
+import de.jackwhite20.cascade.shared.protocol.packet.Packet;
+import de.jackwhite20.cascade.shared.protocol.packet.PacketInfo;
 import de.jackwhite20.cascade.shared.session.ProtocolType;
 import de.jackwhite20.cascade.shared.session.Session;
 
@@ -50,7 +52,7 @@ public class Protocol {
 
         PacketInfo packetInfo = clazz.getAnnotation(PacketInfo.class);
         if(packetInfo == null)
-            throw new IllegalArgumentException("packet class " + clazz.getSimpleName() + " has no PacketInfo annotation");
+            throw new IllegalArgumentException("class " + clazz.getSimpleName() + " has no PacketInfo annotation");
 
         byte id = packetInfo.id();
 
