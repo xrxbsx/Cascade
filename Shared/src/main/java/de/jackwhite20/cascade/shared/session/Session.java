@@ -21,6 +21,11 @@ package de.jackwhite20.cascade.shared.session;
 
 import de.jackwhite20.cascade.shared.Compressor;
 import de.jackwhite20.cascade.shared.Disconnectable;
+import de.jackwhite20.cascade.shared.protocol.packet.Packet;
+import de.jackwhite20.cascade.shared.protocol.packet.PacketInfo;
+import de.jackwhite20.cascade.shared.protocol.Protocol;
+import de.jackwhite20.cascade.shared.protocol.io.PacketReader;
+import de.jackwhite20.cascade.shared.protocol.io.PacketWriter;
 
 import java.io.IOException;
 import java.net.SocketAddress;
@@ -63,15 +68,15 @@ public class Session {
 
     private boolean disconnected = false;
 
-    public Session(int id, SocketChannel socketChannel, DatagramChannel datagramChannel, List<SessionListener> listener, Disconnectable disconnectable, int compressionThreshold) {
+    private Protocol protocol;
+
+    public Session(int id, SocketChannel socketChannel, List<SessionListener> listener, Disconnectable disconnectable, int compressionThreshold, Protocol protocol) {
 
         this.id = id;
         this.socketChannel = socketChannel;
-        this.datagramChannel = datagramChannel;
         this.compressor = new Compressor();
         this.listener = listener;
         try {
-            this.datagramChannel.configureBlocking(false);
             this.remoteAddress = socketChannel.getRemoteAddress();
         } catch (IOException e) {
             e.printStackTrace();
@@ -80,11 +85,12 @@ public class Session {
         this.udpBuffer = ByteBuffer.allocate(DEFAULT_UDP_BUFFER_SIZE);
         this.disconnectable = disconnectable;
         this.compressionThreshold = compressionThreshold;
+        this.protocol = protocol;
     }
 
-    public Session(int id, SocketChannel socketChannel, DatagramChannel datagramChannel, List<SessionListener> listener, int compressionThreshold) {
+    public Session(int id, SocketChannel socketChannel, List<SessionListener> listener, int compressionThreshold, Protocol protocol) {
 
-        this(id, socketChannel, datagramChannel, listener, null, compressionThreshold);
+        this(id, socketChannel, listener, null, compressionThreshold, protocol);
     }
 
     public void close() {
@@ -101,7 +107,7 @@ public class Session {
                     socketChannel.close();
 
                 if (datagramChannel != null)
-                    datagramChannel.disconnect();
+                    datagramChannel.close();
             } catch (Exception e) {
                 listener.forEach(sessionListener -> sessionListener.onException(this, e));
             } finally {
@@ -164,7 +170,18 @@ public class Session {
 
             byte[] decompressed = (isCompressed == 0) ? bytes : compressor.decompress(bytes);
 
-            listener.forEach(sessionListener -> sessionListener.onReceived(this, decompressed, ProtocolType.TCP));
+            PacketReader packetReader = new PacketReader(decompressed);
+            try {
+                byte packetId = packetReader.readByte();
+
+                Packet packet = protocol.create(packetId);
+                packet.read(packetReader);
+
+                protocol.call(packet.getClass(), this, packet, ProtocolType.TCP);
+            } catch (Exception e) {
+                e.printStackTrace();
+                close();
+            }
         }
 
         tcpBuffer.compact();
@@ -187,7 +204,18 @@ public class Session {
 
                 byte[] decompressed = (isCompressed == 0) ? bytes : compressor.decompress(bytes);
 
-                listener.forEach(sessionListener -> sessionListener.onReceived(this, decompressed, ProtocolType.UDP));
+                PacketReader packetReader = new PacketReader(decompressed);
+                try {
+                    byte packetId = packetReader.readByte();
+
+                    Packet packet = protocol.create(packetId);
+                    packet.read(packetReader);
+
+                    protocol.call(packet.getClass(), this, packet, ProtocolType.UDP);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    close();
+                }
 
                 udpBuffer.clear();
             }
@@ -198,45 +226,34 @@ public class Session {
         }
     }
 
-    public void sendReliable(byte[] buffer) {
+    public void send(Packet packet, ProtocolType protocolType) {
 
-        boolean shouldCompress = (buffer.length >= compressionThreshold);
-
-        byte[] compressed = (!shouldCompress) ? buffer : compressor.compress(buffer);
-
-        ByteBuffer sendBuffer = ByteBuffer.allocate(compressed.length + 5);
-        sendBuffer.put((!shouldCompress) ? (byte) 0 : (byte) 1);
-        sendBuffer.putInt(compressed.length);
-        sendBuffer.put(compressed);
-        sendBuffer.flip();
+        PacketWriter packetWriter = new PacketWriter();
 
         try {
-            socketChannel.write(sendBuffer);
-        } catch (IOException e) {
+            packetWriter.writeByte(packet.getClass().getAnnotation(PacketInfo.class).id());
+            packet.write(packetWriter);
+
+            byte[] buffer = packetWriter.bytes();
+
+            boolean shouldCompress = (buffer.length >= compressionThreshold);
+
+            byte[] compressed = (!shouldCompress) ? buffer : compressor.compress(buffer);
+
+            ByteBuffer sendBuffer = ByteBuffer.allocate(compressed.length + 5);
+            sendBuffer.put((!shouldCompress) ? (byte) 0 : (byte) 1);
+            sendBuffer.putInt(compressed.length);
+            sendBuffer.put(compressed);
+            sendBuffer.flip();
+
+            if(protocolType == ProtocolType.UDP) {
+                datagramChannel.send(sendBuffer, datagramChannel.getRemoteAddress());
+            } else
+                socketChannel.write(sendBuffer);
+        } catch (Exception e) {
             close();
 
-            listener.forEach(sessionListener -> sessionListener.onException(this, e));
-        }
-    }
-
-    public void sendUnreliable(byte[] buffer) {
-
-        boolean shouldCompress = (buffer.length >= compressionThreshold);
-
-        byte[] compressed = (!shouldCompress) ? buffer : compressor.compress(buffer);
-
-        ByteBuffer sendBuffer = ByteBuffer.allocate(compressed.length + 5);
-        sendBuffer.put((!shouldCompress) ? (byte) 0 : (byte) 1);
-        sendBuffer.putInt(compressed.length);
-        sendBuffer.put(compressed);
-        sendBuffer.flip();
-
-        try {
-            datagramChannel.send(sendBuffer, remoteAddress);
-        } catch (IOException e) {
-            close();
-
-            listener.forEach(sessionListener -> sessionListener.onException(this, e));
+            throw new IllegalStateException("remote host has probably closed socket");
         }
     }
 
@@ -255,6 +272,11 @@ public class Session {
         return datagramChannel;
     }
 
+    public void datagramChannel(DatagramChannel datagramChannel) {
+
+        this.datagramChannel = datagramChannel;
+    }
+
     public Compressor compressor() {
 
         return compressor;
@@ -268,6 +290,11 @@ public class Session {
     public List<SessionListener> listener() {
 
         return Collections.unmodifiableList(listener);
+    }
+
+    public Protocol protocol() {
+
+        return protocol;
     }
 
     public SocketAddress remoteAddress() {

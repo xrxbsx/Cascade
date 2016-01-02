@@ -21,6 +21,10 @@ package de.jackwhite20.cascade.client;
 
 import de.jackwhite20.cascade.shared.CascadeSettings;
 import de.jackwhite20.cascade.shared.Disconnectable;
+import de.jackwhite20.cascade.shared.protocol.Protocol;
+import de.jackwhite20.cascade.shared.protocol.packet.Packet;
+import de.jackwhite20.cascade.shared.protocol.packet.internal.UDPPortPacket;
+import de.jackwhite20.cascade.shared.session.ProtocolType;
 import de.jackwhite20.cascade.shared.session.Session;
 import de.jackwhite20.cascade.shared.session.SessionListener;
 
@@ -62,6 +66,10 @@ public class Client implements Disconnectable {
 
     private int timeout;
 
+    private InternalPacketListener internalPacketListener;
+
+    private Protocol protocol;
+
     /**
      * Creates a new instance with the given settings.
      *
@@ -70,6 +78,9 @@ public class Client implements Disconnectable {
     public Client(CascadeSettings settings) {
 
         this.settings = settings;
+        this.protocol = settings.protocol();
+        this.protocol.registerListener(internalPacketListener = new InternalPacketListener(this));
+        this.protocol.registerPacket(UDPPortPacket.class);
     }
 
     /**
@@ -160,23 +171,14 @@ public class Client implements Disconnectable {
     }
 
     /**
-     * Sends the given byte array over TCP.
+     * Sends the given packet with the protocol type.
      *
-     * @param buffer the data.
+     * @param packet the packet.
+     * @param type the protocol type.
      */
-    public void sendReliable(byte[] buffer) {
+    public void send(Packet packet, ProtocolType type) {
 
-        session.sendReliable(buffer);
-    }
-
-    /**
-     * Sends the given byte array over UDP.
-     *
-     * @param buffer the data.
-     */
-    public void sendUnreliable(byte[] buffer) {
-
-        session.sendUnreliable(buffer);
+        session.send(packet, type);
     }
 
     /**
@@ -205,7 +207,6 @@ public class Client implements Disconnectable {
 
         if(datagramChannel != null) {
             try {
-                datagramChannel.disconnect();
                 datagramChannel.close();
             } catch (IOException e) {
                 e.printStackTrace();
@@ -213,6 +214,26 @@ public class Client implements Disconnectable {
         }
 
         settings.listener().forEach(sessionListener -> sessionListener.onDisconnected(session));
+    }
+
+    /**
+     * Connects the datagram channel to the remote host with the received port.
+     *
+     * @param port the port.
+     */
+    protected void connectDatagramChannel(int port) {
+
+        try {
+            datagramChannel.connect(new InetSocketAddress(host, port));
+
+            protocol.unregisterListener(internalPacketListener);
+            protocol.unregisterPacket(UDPPortPacket.class);
+
+            notifyWaitObject();
+            settings.listener().forEach(sessionListener -> sessionListener.onConnected(session));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -306,6 +327,16 @@ public class Client implements Disconnectable {
         return timeout;
     }
 
+    /**
+     * Returns the current protocol instance.
+     *
+     * @return the protocol.
+     */
+    public Protocol protocol() {
+
+        return protocol;
+    }
+
     private class ClientThread implements Runnable {
 
         @Override
@@ -333,25 +364,28 @@ public class Client implements Disconnectable {
                         if(key.isConnectable()) {
                             socketChannel.finishConnect();
 
-                            datagramChannel = DatagramChannel.open();
-                            // Start UDP with our local Port, so the server does now our UDP Port
-                            datagramChannel.bind(socketChannel.socket().getLocalSocketAddress());
-                            datagramChannel.configureBlocking(false);
-                            datagramChannel.connect(new InetSocketAddress(host, port));
-
                             SelectionKey tcpRead = socketChannel.register(selector, SelectionKey.OP_READ);
-                            SelectionKey udpRead = datagramChannel.register(selector, SelectionKey.OP_READ);
 
-                            session = new Session(ID_COUNTER.getAndIncrement(), socketChannel, datagramChannel, settings.listener(), Client.this, settings.compressionThreshold());
-
+                            session = new Session(ID_COUNTER.getAndIncrement(), socketChannel, settings.listener(), Client.this, settings.compressionThreshold(), settings.protocol());
                             tcpRead.attach(session);
-                            udpRead.attach(session);
 
                             connected = true;
 
-                            notifyWaitObject();
+                            if(!settings.udp()) {
+                                notifyWaitObject();
 
-                            settings.listener().forEach(sessionListener -> sessionListener.onConnected(session));
+                                settings.listener().forEach(sessionListener -> sessionListener.onConnected(session));
+                            }else {
+                                datagramChannel = DatagramChannel.open();
+                                datagramChannel.bind(new InetSocketAddress("localhost", 0));
+                                datagramChannel.configureBlocking(false);
+
+                                SelectionKey udpRead = datagramChannel.register(selector, SelectionKey.OP_READ);
+                                udpRead.attach(session);
+                                session.datagramChannel(datagramChannel);
+
+                                session.send(new UDPPortPacket(datagramChannel.socket().getLocalPort()), ProtocolType.TCP);
+                            }
                         }
 
                         if(key.isValid() && key.isReadable()) {

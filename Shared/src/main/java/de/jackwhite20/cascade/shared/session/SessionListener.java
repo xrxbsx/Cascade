@@ -28,7 +28,5 @@ public interface SessionListener {
 
     void onDisconnected(Session session);
 
-    void onReceived(Session session, byte[] buffer, ProtocolType protocolType);
-
     void onException(Session session, Throwable throwable);
 }

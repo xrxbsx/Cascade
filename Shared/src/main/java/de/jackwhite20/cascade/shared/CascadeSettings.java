@@ -19,6 +19,7 @@
 
 package de.jackwhite20.cascade.shared;
 
+import de.jackwhite20.cascade.shared.protocol.Protocol;
 import de.jackwhite20.cascade.shared.session.SessionListener;
 
 import java.net.SocketOption;
@@ -36,9 +37,13 @@ public class CascadeSettings {
 
     private List<SessionListener> listener = new ArrayList<>();
 
+    private Protocol protocol;
+
     private List<Option> options = new ArrayList<>();
 
     private int compressionThreshold = 1000;
+
+    private boolean udp = true;
 
     public int backLog() {
 
@@ -55,6 +60,11 @@ public class CascadeSettings {
         return listener;
     }
 
+    public Protocol protocol() {
+
+        return protocol;
+    }
+
     public List<Option> options() {
 
         return options;
@@ -63,6 +73,11 @@ public class CascadeSettings {
     public int compressionThreshold() {
 
         return compressionThreshold;
+    }
+
+    public boolean udp() {
+
+        return udp;
     }
 
     public static class Option<T> {
@@ -151,6 +166,19 @@ public class CascadeSettings {
         }
 
         /**
+         * Sets the protocol.
+         *
+         * @param protocol the protocol.
+         * @return the builder.
+         */
+        public Builder withProtocol(Protocol protocol) {
+
+            instance.protocol = protocol;
+
+            return this;
+        }
+
+        /**
          * Sets the compression threshold when it should compress data.
          * The default is a length of 1000 bytes.
          *
@@ -160,6 +188,20 @@ public class CascadeSettings {
         public Builder withCompressionThreshold(int compressionThreshold) {
 
             instance.compressionThreshold = compressionThreshold;
+
+            return this;
+        }
+
+        /**
+         * Sets whether udp will be enabled or not.
+         * UDP is enabled by default.
+         *
+         * @param value true if udp should be enabled or otherwise false.
+         * @return the builder.
+         */
+        public Builder withUdp(boolean value) {
+
+            instance.udp = value;
 
             return this;
         }

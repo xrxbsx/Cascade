@@ -22,6 +22,9 @@ package de.jackwhite20.cascade.server;
 import de.jackwhite20.cascade.server.selector.SelectorThread;
 import de.jackwhite20.cascade.server.selector.SelectorThreadFactory;
 import de.jackwhite20.cascade.shared.CascadeSettings;
+import de.jackwhite20.cascade.shared.protocol.Protocol;
+import de.jackwhite20.cascade.shared.protocol.packet.internal.UDPPortPacket;
+import de.jackwhite20.cascade.shared.session.ProtocolType;
 import de.jackwhite20.cascade.shared.session.Session;
 
 import java.io.IOException;
@@ -51,8 +54,6 @@ public class Server {
 
     private ServerSocketChannel serverSocketChannel;
 
-    private DatagramChannel serverDatagramChannel;
-
     private Selector selector;
 
     private AtomicInteger idCounter = new AtomicInteger(0);
@@ -65,6 +66,8 @@ public class Server {
 
     private int timeout;
 
+    private Protocol protocol;
+
     /**
      * Creates a new server with the given settings.
      *
@@ -73,6 +76,9 @@ public class Server {
     public Server(CascadeSettings settings) {
 
         this.settings = settings;
+        this.protocol = settings.protocol();
+        this.protocol.registerListener(new InternalPacketListener(this));
+        this.protocol.registerPacket(UDPPortPacket.class);
     }
 
     /**
@@ -92,13 +98,9 @@ public class Server {
         serverSocketChannel.configureBlocking(false);
         serverSocketChannel.socket().setSoTimeout(timeout);
 
-        serverDatagramChannel = DatagramChannel.open();
-        serverDatagramChannel.configureBlocking(false);
-
         selector = Selector.open();
 
         serverSocketChannel.bind(inetSocketAddress, settings.backLog());
-        serverDatagramChannel.bind(inetSocketAddress);
 
         serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
 
@@ -175,14 +177,6 @@ public class Server {
             }
         }
 
-        if(serverDatagramChannel != null) {
-            try {
-                serverDatagramChannel.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
         selectorThreads.forEach(SelectorThread::shutdown);
 
         // Shutdown the pool for the selectors
@@ -206,6 +200,40 @@ public class Server {
         return selectorThreads.get(next);
     }
 
+    protected void registerDatagramChannel(Session session, int port) {
+
+        try {
+            DatagramChannel datagramChannel = DatagramChannel.open();
+            datagramChannel.configureBlocking(false);
+            datagramChannel.bind(new InetSocketAddress(inetSocketAddress.getAddress(), 0));
+            datagramChannel.connect(new InetSocketAddress(((InetSocketAddress) session.socketChannel().getRemoteAddress()).getAddress(), port));
+
+            Selector nextSelector = nextSelector().selector();
+
+            selectorLock.lock();
+
+            nextSelector.wakeup();
+
+            SelectionKey udpKey = null;
+            try {
+                udpKey = datagramChannel.register(nextSelector, SelectionKey.OP_READ);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            selectorLock.unlock();
+
+            if(udpKey != null) {
+                session.datagramChannel(((DatagramChannel) udpKey.channel()));
+                udpKey.attach(session);
+                session.send(new UDPPortPacket(datagramChannel.socket().getLocalPort()), ProtocolType.TCP);
+            }
+        } catch (Exception e) {
+            session.close();
+            e.printStackTrace();
+        }
+    }
+
     /**
      * Returns the timeout in milliseconds.
      *
@@ -224,6 +252,16 @@ public class Server {
     public CascadeSettings settings() {
 
         return settings;
+    }
+
+    /**
+     * Returns the current protocol instance.
+     *
+     * @return the protocol.
+     */
+    public Protocol protocol() {
+
+        return protocol;
     }
 
     private class ServerThread implements Runnable {
@@ -278,22 +316,13 @@ public class Server {
                                 e.printStackTrace();
                                 continue;
                             }
-                            SelectionKey udpKey;
-                            try {
-                                udpKey = serverDatagramChannel.register(nextSelector, SelectionKey.OP_READ);
-                            } catch (Exception e) {
-                                socketChannel.close();
-                                e.printStackTrace();
-                                continue;
-                            }
 
                             selectorLock.unlock();
 
                             int clientId = nextId();
 
-                            Session session = new Session(clientId, socketChannel, ((DatagramChannel) udpKey.channel()), settings.listener(), settings.compressionThreshold());
+                            Session session = new Session(clientId, socketChannel, settings.listener(), settings.compressionThreshold(), settings.protocol());
                             tcpKey.attach(session);
-                            udpKey.attach(session);
 
                             if(!settings.listener().isEmpty())
                                 settings.listener().forEach(sessionListener -> sessionListener.onConnected(session));

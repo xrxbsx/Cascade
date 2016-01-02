@@ -63,6 +63,29 @@ public class Protocol {
     }
 
     /**
+     * Unregisters a packet from the protocol.
+     * The class must have a PacketInfo annotation with a id specified.
+     *
+     * @param clazz the packet class.
+     */
+    public void unregisterPacket(Class<? extends Packet> clazz) {
+
+        if(clazz == null)
+            throw new IllegalArgumentException("clazz cannot be null");
+
+        PacketInfo packetInfo = clazz.getAnnotation(PacketInfo.class);
+        if(packetInfo == null)
+            throw new IllegalArgumentException("class " + clazz.getSimpleName() + " has no PacketInfo annotation");
+
+        byte id = packetInfo.id();
+
+        if(!packets.containsKey(id))
+            throw new IllegalArgumentException("packet with id " + id + " is not registered");
+
+        packets.remove(id);
+    }
+
+    /**
      * Registers a packet listener.
      *
      * @param packetListener the listener.
@@ -91,6 +114,41 @@ public class Protocol {
         }
     }
 
+    /**
+     * Unregisters a packet listener.
+     *
+     * @param packetListener the listener.
+     */
+    public void unregisterListener(PacketListener packetListener) {
+
+        if(packetListener == null)
+            throw new IllegalArgumentException("packetListener cannot be null");
+
+        for (Method method : packetListener.getClass().getDeclaredMethods()) {
+            if(method.getParameterCount() != 3)
+                continue;
+
+            if(!method.isAnnotationPresent(PacketHandler.class))
+                continue;
+
+            Class<?> paramType = method.getParameterTypes()[1];
+
+            if (!Packet.class.isAssignableFrom(paramType))
+                continue;
+
+            if(listeners.containsKey(paramType))
+                listeners.get(paramType).unregister(packetListener);
+        }
+    }
+
+    /**
+     * Calls all methods from the listener which are registered with packet class.
+     *
+     * @param clazz the packet class.
+     * @param session the session.
+     * @param packet the packet instance.
+     * @param protocolType the protocol type.
+     */
     public void call(Class<?> clazz, Session session, Packet packet, ProtocolType protocolType) {
 
         if(clazz == null)
@@ -105,10 +163,16 @@ public class Protocol {
         listeners.get(clazz).call(session, packet, protocolType);
     }
 
+    /**
+     * Creates an instance of a packet from the id.
+     *
+     * @param id the id.
+     * @return the packet instance.
+     */
     public Packet create(byte id) {
 
         if(!packets.containsKey(id))
-            throw new  IllegalStateException("a packet with id " + id + " does not exists");
+            throw new IllegalStateException("a packet with id " + id + " does not exists");
 
         try {
             return packets.get(id).newInstance();

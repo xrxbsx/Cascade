@@ -19,7 +19,7 @@
 
 package de.jackwhite20.cascade.shared.protocol.listener;
 
-import de.jackwhite20.cascade.shared.protocol.Packet;
+import de.jackwhite20.cascade.shared.protocol.packet.Packet;
 import de.jackwhite20.cascade.shared.session.ProtocolType;
 import de.jackwhite20.cascade.shared.session.Session;
 
@@ -28,21 +28,27 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by JackWhite20 on 02.01.2016.
  */
 public class Listeners {
 
-    private Map<PacketListener, ArrayList<Method>> listeners = new HashMap<>();
+    private Map<PacketListener, ArrayList<Method>> listeners = new ConcurrentHashMap<>();
 
-    public void register(PacketListener messageListener, Method method) {
+    public void register(PacketListener packetListener, Method method) {
 
-        if(listeners.containsKey(messageListener)) {
-            listeners.get(messageListener).add(method);
+        if(listeners.containsKey(packetListener)) {
+            listeners.get(packetListener).add(method);
         }else {
-            listeners.put(messageListener, new ArrayList<>(Collections.singletonList(method)));
+            listeners.put(packetListener, new ArrayList<>(Collections.singletonList(method)));
         }
+    }
+
+    public void unregister(PacketListener packetListener) {
+
+        listeners.remove(packetListener);
     }
 
     public void call(Session session, Packet packet, ProtocolType protocolType) {
