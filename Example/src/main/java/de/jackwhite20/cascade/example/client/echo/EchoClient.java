@@ -29,11 +29,11 @@ import java.net.StandardSocketOptions;
 /**
  * Created by JackWhite20 on 07.11.2015.
  */
-public class ExampleClient {
+public class EchoClient {
 
     public static void main(String[] args) {
 
-        new ExampleClient("localhost", 12345).connect();
+        new EchoClient("localhost", 12345).connect();
     }
 
     private String host;
@@ -42,7 +42,7 @@ public class ExampleClient {
 
     private Client client;
 
-    public ExampleClient(String host, int port) {
+    public EchoClient(String host, int port) {
 
         this.host = host;
         this.port = port;

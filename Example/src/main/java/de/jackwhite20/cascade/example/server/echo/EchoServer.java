@@ -33,11 +33,11 @@ import java.net.StandardSocketOptions;
 /**
  * Created by JackWhite20 on 07.11.2015.
  */
-public class ExampleServer extends SessionListenerAdapter implements PacketListener {
+public class EchoServer extends SessionListenerAdapter implements PacketListener {
 
     public static void main(String[] args) {
 
-        new ExampleServer("0.0.0.0", 12345).start();
+        new EchoServer("0.0.0.0", 12345).start();
     }
 
     private String host;
@@ -46,7 +46,7 @@ public class ExampleServer extends SessionListenerAdapter implements PacketListe
 
     private Server server;
 
-    public ExampleServer(String host, int port) {
+    public EchoServer(String host, int port) {
 
         this.host = host;
         this.port = port;

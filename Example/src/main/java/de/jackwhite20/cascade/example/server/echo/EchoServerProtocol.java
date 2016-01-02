@@ -30,7 +30,7 @@ public class EchoServerProtocol extends Protocol {
 
     public EchoServerProtocol(PacketListener packetListener) {
 
-        // Register our ExampleServer class as a packet listener
+        // Register our EchoServer class as a packet listener
         registerListener(packetListener);
         // Register the ChatPacket packet
         registerPacket(ChatPacket.class);
