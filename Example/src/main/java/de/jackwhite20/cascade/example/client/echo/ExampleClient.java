@@ -20,7 +20,9 @@
 package de.jackwhite20.cascade.example.client.echo;
 
 import de.jackwhite20.cascade.client.Client;
+import de.jackwhite20.cascade.example.shared.echo.ChatPacket;
 import de.jackwhite20.cascade.shared.CascadeSettings;
+import de.jackwhite20.cascade.shared.session.ProtocolType;
 
 import java.net.StandardSocketOptions;
 
@@ -48,12 +50,16 @@ public class ExampleClient {
 
     public void connect() {
 
+        EchoClientPacketListener packetListener = new EchoClientPacketListener();
         // Create a new instance of Client and parse in CascadeSettings
         client = new Client(new CascadeSettings.Builder()
                 // Add a new session listener to handle incoming packets
-                .withListener(new ClientListener())
+                .withListener(packetListener)
                 // You can also enable TCP_NODELAY like so
                 .withOption(StandardSocketOptions.TCP_NODELAY, true)
+                // Set the protocol to our EchoClientProtocol and pass the packet listener to it
+                .withProtocol(new EchoClientProtocol(packetListener))
+                // Build the settings
                 .build());
 
         // Connect the the host ip and port and set the timeout to 2000
@@ -66,7 +72,12 @@ public class ExampleClient {
 
         String message = "Hey my friend.";
         System.out.println("Sending to Server: " + message);
-        // Send the message reliable (TCP) to the server
-        client.sendReliable(message.getBytes());
+        // Send the packet reliable (TCP) to the server
+        client.send(new ChatPacket(message), ProtocolType.TCP);
+    }
+
+    public Client client() {
+
+        return client;
     }
 }

@@ -19,8 +19,11 @@
 
 package de.jackwhite20.cascade.example.server.echo;
 
+import de.jackwhite20.cascade.example.shared.echo.ChatPacket;
 import de.jackwhite20.cascade.server.Server;
 import de.jackwhite20.cascade.shared.CascadeSettings;
+import de.jackwhite20.cascade.shared.protocol.listener.PacketHandler;
+import de.jackwhite20.cascade.shared.protocol.listener.PacketListener;
 import de.jackwhite20.cascade.shared.session.ProtocolType;
 import de.jackwhite20.cascade.shared.session.Session;
 import de.jackwhite20.cascade.shared.session.SessionListenerAdapter;
@@ -30,7 +33,7 @@ import java.net.StandardSocketOptions;
 /**
  * Created by JackWhite20 on 07.11.2015.
  */
-public class ExampleServer extends SessionListenerAdapter {
+public class ExampleServer extends SessionListenerAdapter implements PacketListener {
 
     public static void main(String[] args) {
 
@@ -59,6 +62,8 @@ public class ExampleServer extends SessionListenerAdapter {
                 .withSelectorCount(4)
                 // Set the session listener
                 .withListener(this)
+                // Set the protocol to the EchoServerProtocol and pass the packet listener to it
+                .withProtocol(new EchoServerProtocol(this))
                 // You can also enable TCP_NODELAY like this
                 .withOption(StandardSocketOptions.TCP_NODELAY, true)
                 .build());
@@ -81,19 +86,6 @@ public class ExampleServer extends SessionListenerAdapter {
     }
 
     @Override
-    public void onReceived(Session session, byte[] buffer, ProtocolType protocolType) {
-
-        System.out.println("Received from Client " + session.id() + ": " + new String(buffer));
-
-        // Send back the data with the same protocol type
-        if(protocolType == ProtocolType.UDP) {
-            session.sendUnreliable(buffer);
-        }else {
-            session.sendReliable(buffer);
-        }
-    }
-
-    @Override
     public void onDisconnected(Session session) {
 
         System.out.println(session.id() + " disconnected!");
@@ -103,5 +95,23 @@ public class ExampleServer extends SessionListenerAdapter {
     public void onConnected(Session session) {
 
         System.out.println(session.id() + " connected!");
+    }
+
+    /**
+     * The method needs a @PacketHandler annotation, a session and as third param the ProtocolType.
+     * The second param needs to be your packet class for which this method is responsible for.
+     */
+    @PacketHandler
+    public void onChatPacket(Session session, ChatPacket chatPacket, ProtocolType type) {
+
+        System.out.println("Received from Client " + session.id() + ": " + chatPacket.message());
+
+        // Send the packet back with the same ProtocolType
+        session.send(chatPacket, type);
+    }
+
+    public Server server() {
+
+        return server;
     }
 }
