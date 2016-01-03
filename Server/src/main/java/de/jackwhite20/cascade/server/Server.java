@@ -129,11 +129,11 @@ public class Server {
     }
 
     /**
-     * Binds the server so host
+     * Binds the server to the host and port.
      *
      * @param host the host ip.
      * @param port the host port.
-     * @param timeout the timeout in milliseconds.
+     * @param timeout the SO_TIMEOUT timeout in milliseconds.
      * @throws Exception if some IO error occurs.
      */
     public void bind(String host, int port, int timeout) throws Exception {
@@ -142,7 +142,7 @@ public class Server {
     }
 
     /**
-     * Binds the server so host
+     * Binds the server to the host and port.
      * The timeout is set to 10 minutes.
      *
      * @param host the host ip.
