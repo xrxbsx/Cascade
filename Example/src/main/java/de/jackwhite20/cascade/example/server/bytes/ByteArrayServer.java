@@ -17,27 +17,27 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.jackwhite20.cascade.example.server.echo;
+package de.jackwhite20.cascade.example.server.bytes;
 
-import de.jackwhite20.cascade.example.shared.echo.ChatPacket;
 import de.jackwhite20.cascade.server.Server;
 import de.jackwhite20.cascade.shared.CascadeSettings;
+import de.jackwhite20.cascade.shared.protocol.impl.ByteArrayPacket;
+import de.jackwhite20.cascade.shared.protocol.impl.ByteArrayProtocol;
 import de.jackwhite20.cascade.shared.protocol.listener.PacketHandler;
 import de.jackwhite20.cascade.shared.protocol.listener.PacketListener;
 import de.jackwhite20.cascade.shared.session.ProtocolType;
 import de.jackwhite20.cascade.shared.session.Session;
-import de.jackwhite20.cascade.shared.session.SessionListenerAdapter;
 
 import java.net.StandardSocketOptions;
 
 /**
- * Created by JackWhite20 on 07.11.2015.
+ * Created by JackWhite20 on 03.01.2016.
  */
-public class EchoServer extends SessionListenerAdapter implements PacketListener {
+public class ByteArrayServer implements PacketListener {
 
     public static void main(String[] args) {
 
-        new EchoServer("0.0.0.0", 12345).start();
+        new ByteArrayServer("0.0.0.0", 12345).start();
     }
 
     private String host;
@@ -46,7 +46,7 @@ public class EchoServer extends SessionListenerAdapter implements PacketListener
 
     private Server server;
 
-    public EchoServer(String host, int port) {
+    public ByteArrayServer(String host, int port) {
 
         this.host = host;
         this.port = port;
@@ -60,10 +60,8 @@ public class EchoServer extends SessionListenerAdapter implements PacketListener
                 .withBackLog(200)
                 // Set the count of threads that will handle read operations
                 .withSelectorCount(4)
-                // Set the session listener
-                .withListener(this)
-                // Set the protocol to the EchoServerProtocol and pass the packet listener to it
-                .withProtocol(new EchoServerProtocol(this))
+                // Set the protocol to the predefined ByteArrayProtocol and pass the packet listener to it
+                .withProtocol(new ByteArrayProtocol(this))
                 // You can also enable TCP_NODELAY like this
                 .withOption(StandardSocketOptions.TCP_NODELAY, true)
                 // Build the settings
@@ -79,36 +77,14 @@ public class EchoServer extends SessionListenerAdapter implements PacketListener
         System.out.println("Server started!");
     }
 
-    @Override
-    public void onException(Session session, Throwable throwable) {
-
-        System.err.println("Exception from " + session.id() + ":");
-        throwable.printStackTrace();
-    }
-
-    @Override
-    public void onDisconnected(Session session) {
-
-        System.out.println(session.id() + " disconnected!");
-    }
-
-    @Override
-    public void onConnected(Session session) {
-
-        System.out.println(session.id() + " connected!");
-    }
-
-    /**
-     * The method needs a @PacketHandler annotation, a session and as third param the ProtocolType.
-     * The second param needs to be your packet class for which this method is responsible for.
-     */
     @PacketHandler
-    public void onChatPacket(Session session, ChatPacket chatPacket, ProtocolType type) {
+    public void onByteArrayPacket(Session session, ByteArrayPacket byteArrayPacket, ProtocolType type) {
 
-        System.out.println("Received from Client " + session.id() + ": " + chatPacket.message());
+        byte[] bytes = byteArrayPacket.bytes();
 
-        // Send the packet back with the same ProtocolType
-        session.send(chatPacket, type);
+        System.out.println("Received byte array string from client: " + new String(bytes));
+
+        session.send(new ByteArrayPacket(bytes), type);
     }
 
     public Server server() {

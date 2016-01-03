@@ -17,23 +17,27 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.jackwhite20.cascade.example.client.echo;
+package de.jackwhite20.cascade.example.client.bytes;
 
 import de.jackwhite20.cascade.client.Client;
-import de.jackwhite20.cascade.example.shared.echo.ChatPacket;
 import de.jackwhite20.cascade.shared.CascadeSettings;
+import de.jackwhite20.cascade.shared.protocol.impl.ByteArrayPacket;
+import de.jackwhite20.cascade.shared.protocol.impl.ByteArrayProtocol;
+import de.jackwhite20.cascade.shared.protocol.listener.PacketHandler;
+import de.jackwhite20.cascade.shared.protocol.listener.PacketListener;
 import de.jackwhite20.cascade.shared.session.ProtocolType;
+import de.jackwhite20.cascade.shared.session.Session;
 
 import java.net.StandardSocketOptions;
 
 /**
- * Created by JackWhite20 on 07.11.2015.
+ * Created by JackWhite20 on 03.01.2016.
  */
-public class EchoClient {
+public class ByteArrayClient implements PacketListener {
 
     public static void main(String[] args) {
 
-        new EchoClient("localhost", 12345).connect();
+        new ByteArrayClient("localhost", 12345).connect();
     }
 
     private String host;
@@ -42,7 +46,7 @@ public class EchoClient {
 
     private Client client;
 
-    public EchoClient(String host, int port) {
+    public ByteArrayClient(String host, int port) {
 
         this.host = host;
         this.port = port;
@@ -50,15 +54,12 @@ public class EchoClient {
 
     public void connect() {
 
-        EchoClientPacketListener packetListener = new EchoClientPacketListener();
         // Create a new instance of Client and parse in CascadeSettings
         client = new Client(new CascadeSettings.Builder()
-                // Add a new session listener to handle notifications
-                .withListener(packetListener)
                 // You can also enable TCP_NODELAY like so
                 .withOption(StandardSocketOptions.TCP_NODELAY, true)
-                // Set the protocol to our EchoClientProtocol and pass the packet listener to it
-                .withProtocol(new EchoClientProtocol(packetListener))
+                // Set the protocol to the predefined ByteArrayProtocol and pass the packet listener to it
+                .withProtocol(new ByteArrayProtocol(this))
                 // Build the settings
                 .build());
 
@@ -73,7 +74,13 @@ public class EchoClient {
         String message = "Hey my friend.";
         System.out.println("Sending to Server: " + message);
         // Send the packet reliable (TCP) to the server
-        client.send(new ChatPacket(message), ProtocolType.TCP);
+        client.send(new ByteArrayPacket(message.getBytes()), ProtocolType.TCP);
+    }
+
+    @PacketHandler
+    public void onByteArrayPacket(Session session, ByteArrayPacket byteArrayPacket, ProtocolType type) {
+
+        System.out.println("Received byte array string from server: " + new String(byteArrayPacket.bytes()));
     }
 
     public Client client() {
