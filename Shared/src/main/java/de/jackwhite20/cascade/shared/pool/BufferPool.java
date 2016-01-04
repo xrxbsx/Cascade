@@ -19,7 +19,6 @@
 
 package de.jackwhite20.cascade.shared.pool;
 
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -32,35 +31,43 @@ public class BufferPool {
 
     private static final int THRESHOLD = 250;
 
-    private static final List<ByteBuffer> POOL = Collections.synchronizedList(new ArrayList<>());
+    private static final List<ByteBuf> POOL = Collections.synchronizedList(new ArrayList<>());
 
-    public static ByteBuffer acquire(int capacity) {
+    public static ByteBuf acquire(int capacity) {
 
         if(capacity < THRESHOLD)
-            return ByteBuffer.allocate(capacity);
+            return new ByteBuf(capacity);
 
         synchronized (POOL) {
-            Iterator<ByteBuffer> iterator = POOL.iterator();
+            Iterator<ByteBuf> iterator = POOL.iterator();
             while (iterator.hasNext()) {
-                ByteBuffer byteBuffer = iterator.next();
-
-                if (byteBuffer.limit() >= capacity) {
+                ByteBuf byteBuf = iterator.next();
+                if (byteBuf.limit() >= capacity) {
                     iterator.remove();
-                    return byteBuffer;
+                    byteBuf.limit(capacity);
+                    return byteBuf;
                 }
             }
         }
 
-        return ByteBuffer.allocate(capacity);
+        return new ByteBuf(capacity);
     }
 
-    public static void release(ByteBuffer byteBuffer) {
+    public static void release(ByteBuf byteBuffer) {
 
         if(byteBuffer.limit() < THRESHOLD)
             return;
 
-        synchronized (POOL) {
-            POOL.add(byteBuffer);
-        }
+        // First clear
+        byteBuffer.clear();
+        // Set the limit to the start capacity afterwards to set the real limit after an acquire
+        byteBuffer.limit(byteBuffer.startCapacity());
+
+        POOL.add(byteBuffer);
+    }
+
+    public static void clear() {
+
+        POOL.clear();
     }
 }

@@ -21,6 +21,8 @@ package de.jackwhite20.cascade.shared.session;
 
 import de.jackwhite20.cascade.shared.Compressor;
 import de.jackwhite20.cascade.shared.Disconnectable;
+import de.jackwhite20.cascade.shared.pool.BufferPool;
+import de.jackwhite20.cascade.shared.pool.ByteBuf;
 import de.jackwhite20.cascade.shared.protocol.packet.Packet;
 import de.jackwhite20.cascade.shared.protocol.packet.PacketInfo;
 import de.jackwhite20.cascade.shared.protocol.Protocol;
@@ -240,20 +242,22 @@ public class Session {
 
             byte[] compressed = (!shouldCompress) ? buffer : compressor.compress(buffer);
 
-            ByteBuffer sendBuffer = ByteBuffer.allocate(compressed.length + 5);
+            ByteBuf sendBuffer = BufferPool.acquire(compressed.length + 5);
             sendBuffer.put((!shouldCompress) ? (byte) 0 : (byte) 1);
             sendBuffer.putInt(compressed.length);
             sendBuffer.put(compressed);
             sendBuffer.flip();
 
             if(protocolType == ProtocolType.UDP) {
-                datagramChannel.send(sendBuffer, datagramChannel.getRemoteAddress());
+                datagramChannel.send(sendBuffer.nioBuffer(), datagramChannel.getRemoteAddress());
             } else
-                socketChannel.write(sendBuffer);
+                socketChannel.write(sendBuffer.nioBuffer());
+
+            sendBuffer.release();
         } catch (Exception e) {
             close();
 
-            throw new IllegalStateException("remote host has probably closed socket");
+            e.printStackTrace();
         }
     }
 
