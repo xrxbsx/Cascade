@@ -22,6 +22,7 @@ package de.jackwhite20.cascade.shared.pool;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Created by JackWhite20 on 05.01.2016.
@@ -29,7 +30,7 @@ import static org.junit.Assert.assertEquals;
 public class BufferPoolTest {
 
     @Test
-    public void testBufferPoolAcquire() {
+    public void testBufferPoolAcquireRelease() {
 
         ByteBuf byteBuf = BufferPool.acquire(5000);
         int firstHashCode = byteBuf.hashCode();
@@ -44,5 +45,21 @@ public class BufferPoolTest {
         assertEquals(secondLimit, 2000);
 
         assertEquals(byteBufSecond.limit(), 5000);
+    }
+
+    @Test
+    public void testBufferPoolClear() {
+
+        ByteBuf byteBuf = BufferPool.acquire(5000);
+        int firstHashCode = byteBuf.hashCode();
+        byteBuf.release();
+
+        BufferPool.clear();
+
+        ByteBuf buf = BufferPool.acquire(5000);
+        int secondHashCode = buf.hashCode();
+        buf.release();
+
+        assertTrue(firstHashCode != secondHashCode);
     }
 }
