@@ -20,299 +20,36 @@
 package de.jackwhite20.cascade.shared.session;
 
 import de.jackwhite20.cascade.shared.Compressor;
-import de.jackwhite20.cascade.shared.Disconnectable;
-import de.jackwhite20.cascade.shared.pool.BufferPool;
-import de.jackwhite20.cascade.shared.pool.ByteBuf;
-import de.jackwhite20.cascade.shared.protocol.packet.Packet;
-import de.jackwhite20.cascade.shared.protocol.packet.PacketInfo;
 import de.jackwhite20.cascade.shared.protocol.Protocol;
-import de.jackwhite20.cascade.shared.protocol.io.PacketReader;
-import de.jackwhite20.cascade.shared.protocol.io.PacketWriter;
+import de.jackwhite20.cascade.shared.protocol.packet.Packet;
 
-import java.io.IOException;
 import java.net.SocketAddress;
-import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 import java.nio.channels.SocketChannel;
-import java.util.Collections;
 import java.util.List;
 
 /**
- * Created by JackWhite20 on 13.10.2015.
+ * Created by JackWhite20 on 09.01.2016.
  */
-public class Session {
+public interface Session {
 
-    private static final int DEFAULT_TCP_BUFFER_SIZE = 1024;
+    void close();
 
-    private static final int DEFAULT_UDP_BUFFER_SIZE = 65535;
+    void send(Packet packet, ProtocolType protocolType);
 
-    private static final int BUFFER_GROW_FACTOR = 2;
+    int id();
 
-    private int id;
+    SocketChannel socketChannel();
 
-    private SocketChannel socketChannel;
+    DatagramChannel datagramChannel();
 
-    private DatagramChannel datagramChannel;
+    Compressor compressor();
 
-    private Compressor compressor;
+    int compressionThreshold();
 
-    private List<SessionListener> listener;
+    List<SessionListener> listener();
 
-    private SocketAddress remoteAddress;
+    Protocol protocol();
 
-    private ByteBuffer tcpBuffer;
-
-    private ByteBuffer udpBuffer;
-
-    private Disconnectable disconnectable;
-
-    private int compressionThreshold;
-
-    private boolean disconnected = false;
-
-    private Protocol protocol;
-
-    public Session(int id, SocketChannel socketChannel, List<SessionListener> listener, Disconnectable disconnectable, int compressionThreshold, Protocol protocol) {
-
-        this.id = id;
-        this.socketChannel = socketChannel;
-        this.compressor = new Compressor();
-        this.listener = listener;
-        try {
-            this.remoteAddress = socketChannel.getRemoteAddress();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        this.tcpBuffer = ByteBuffer.allocate(DEFAULT_TCP_BUFFER_SIZE);
-        this.udpBuffer = ByteBuffer.allocate(DEFAULT_UDP_BUFFER_SIZE);
-        this.disconnectable = disconnectable;
-        this.compressionThreshold = compressionThreshold;
-        this.protocol = protocol;
-    }
-
-    public Session(int id, SocketChannel socketChannel, List<SessionListener> listener, int compressionThreshold, Protocol protocol) {
-
-        this(id, socketChannel, listener, null, compressionThreshold, protocol);
-    }
-
-    public void close() {
-
-        // Don't call onDisconnected twice
-        if(disconnected)
-            return;
-
-        if (disconnectable != null) {
-            disconnectable.disconnect();
-        } else {
-            try {
-                if (socketChannel != null)
-                    socketChannel.close();
-
-                if (datagramChannel != null)
-                    datagramChannel.close();
-            } catch (Exception e) {
-                listener.forEach(sessionListener -> sessionListener.onException(this, e));
-            } finally {
-                listener.forEach(sessionListener -> sessionListener.onDisconnected(this));
-            }
-        }
-
-        disconnected = true;
-    }
-
-    public void readSocket() {
-
-        int read;
-
-        tcpBuffer.limit(tcpBuffer.capacity());
-
-        try {
-            read = socketChannel.read(tcpBuffer);
-            if (tcpBuffer.remaining() == 0) {
-                ByteBuffer temp = ByteBuffer.allocate(tcpBuffer.capacity() * BUFFER_GROW_FACTOR);
-                tcpBuffer.flip();
-                temp.put(tcpBuffer);
-                tcpBuffer = temp;
-
-                int position = tcpBuffer.position();
-                tcpBuffer.flip();
-                // Reset to last position (the position from the half read packet) after flip
-                tcpBuffer.position(position);
-
-                // Read again to read the left packet
-                readSocket();
-            }
-        } catch (IOException e) {
-            read = -1;
-        }
-
-        if (read == -1) {
-            close();
-
-            return;
-        }
-
-        tcpBuffer.flip();
-
-        while (tcpBuffer.remaining() > 0) {
-            tcpBuffer.mark();
-
-            if (tcpBuffer.remaining() < 5)
-                break;
-
-            byte isCompressed = tcpBuffer.get();
-            int readableBytes = tcpBuffer.getInt();
-            if (tcpBuffer.remaining() < readableBytes) {
-                tcpBuffer.reset();
-                break;
-            }
-
-            byte[] bytes = new byte[readableBytes];
-            tcpBuffer.get(bytes);
-
-            byte[] decompressed = (isCompressed == 0) ? bytes : compressor.decompress(bytes);
-
-            PacketReader packetReader = new PacketReader(decompressed);
-            try {
-                byte packetId = packetReader.readByte();
-
-                Packet packet = protocol.create(packetId);
-                packet.read(packetReader);
-
-                protocol.call(packet.getClass(), this, packet, ProtocolType.TCP);
-            } catch (Exception e) {
-                e.printStackTrace();
-                close();
-            }
-        }
-
-        tcpBuffer.compact();
-    }
-
-    public void readDatagram() {
-
-        try {
-            while (datagramChannel.receive(udpBuffer) != null) {
-                udpBuffer.flip();
-
-                if(udpBuffer.remaining() < 5)
-                    continue;
-
-                byte isCompressed = udpBuffer.get();
-                int readableBytes = udpBuffer.getInt();
-
-                byte[] bytes = new byte[readableBytes];
-                udpBuffer.get(bytes);
-
-                byte[] decompressed = (isCompressed == 0) ? bytes : compressor.decompress(bytes);
-
-                PacketReader packetReader = new PacketReader(decompressed);
-                try {
-                    byte packetId = packetReader.readByte();
-
-                    Packet packet = protocol.create(packetId);
-                    packet.read(packetReader);
-
-                    protocol.call(packet.getClass(), this, packet, ProtocolType.UDP);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    close();
-                }
-
-                udpBuffer.clear();
-            }
-        } catch (IOException e) {
-            close();
-
-            listener.forEach(sessionListener -> sessionListener.onException(this, e));
-        }
-    }
-
-    public void send(Packet packet, ProtocolType protocolType) {
-
-        PacketWriter packetWriter = new PacketWriter();
-
-        try {
-            packetWriter.writeByte(packet.getClass().getAnnotation(PacketInfo.class).id());
-            packet.write(packetWriter);
-
-            byte[] buffer = packetWriter.bytes();
-
-            boolean shouldCompress = (buffer.length >= compressionThreshold);
-
-            byte[] compressed = (!shouldCompress) ? buffer : compressor.compress(buffer);
-
-            ByteBuf sendBuffer = BufferPool.acquire(compressed.length + 5);
-            sendBuffer.put((!shouldCompress) ? (byte) 0 : (byte) 1);
-            sendBuffer.putInt(compressed.length);
-            sendBuffer.put(compressed);
-            sendBuffer.flip();
-
-            if(protocolType == ProtocolType.UDP) {
-                datagramChannel.send(sendBuffer.nioBuffer(), datagramChannel.getRemoteAddress());
-            } else
-                socketChannel.write(sendBuffer.nioBuffer());
-
-            sendBuffer.release();
-        } catch (Exception e) {
-            close();
-
-            e.printStackTrace();
-        }
-    }
-
-    public int id() {
-
-        return id;
-    }
-
-    public SocketChannel socketChannel() {
-
-        return socketChannel;
-    }
-
-    public DatagramChannel datagramChannel() {
-
-        return datagramChannel;
-    }
-
-    public void datagramChannel(DatagramChannel datagramChannel) {
-
-        this.datagramChannel = datagramChannel;
-    }
-
-    public Compressor compressor() {
-
-        return compressor;
-    }
-
-    public int compressionThreshold() {
-
-        return compressionThreshold;
-    }
-
-    public List<SessionListener> listener() {
-
-        return Collections.unmodifiableList(listener);
-    }
-
-    public Protocol protocol() {
-
-        return protocol;
-    }
-
-    public SocketAddress remoteAddress() {
-
-        return remoteAddress;
-    }
-
-    public ByteBuffer tcpBuffer() {
-
-        return tcpBuffer;
-    }
-
-    public ByteBuffer udpBuffer() {
-
-        return udpBuffer;
-    }
+    SocketAddress remoteAddress();
 }

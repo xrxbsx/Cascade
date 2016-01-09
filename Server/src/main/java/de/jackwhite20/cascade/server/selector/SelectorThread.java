@@ -19,7 +19,7 @@
 
 package de.jackwhite20.cascade.server.selector;
 
-import de.jackwhite20.cascade.shared.session.Session;
+import de.jackwhite20.cascade.shared.session.impl.SessionImpl;
 
 import java.io.IOException;
 import java.nio.channels.DatagramChannel;
@@ -105,7 +105,7 @@ public class SelectorThread implements Runnable {
                         continue;
 
                     if (key.isReadable()) {
-                        Session session = (Session) key.attachment();
+                        SessionImpl session = (SessionImpl) key.attachment();
 
                         if(session == null)
                             continue;

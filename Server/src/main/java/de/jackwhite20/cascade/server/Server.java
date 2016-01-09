@@ -25,7 +25,7 @@ import de.jackwhite20.cascade.shared.CascadeSettings;
 import de.jackwhite20.cascade.shared.protocol.Protocol;
 import de.jackwhite20.cascade.shared.protocol.packet.internal.UDPPortPacket;
 import de.jackwhite20.cascade.shared.session.ProtocolType;
-import de.jackwhite20.cascade.shared.session.Session;
+import de.jackwhite20.cascade.shared.session.impl.SessionImpl;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -200,7 +200,7 @@ public class Server {
         return selectorThreads.get(next);
     }
 
-    protected void registerDatagramChannel(Session session, int port) {
+    protected void registerDatagramChannel(SessionImpl session, int port) {
 
         try {
             DatagramChannel datagramChannel = DatagramChannel.open();
@@ -321,7 +321,7 @@ public class Server {
 
                             int clientId = nextId();
 
-                            Session session = new Session(clientId, socketChannel, settings.listener(), settings.compressionThreshold(), settings.protocol());
+                            SessionImpl session = new SessionImpl(clientId, socketChannel, settings.listener(), settings.compressionThreshold(), settings.protocol());
                             tcpKey.attach(session);
 
                             if(!settings.listener().isEmpty())

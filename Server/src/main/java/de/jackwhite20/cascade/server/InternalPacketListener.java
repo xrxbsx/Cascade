@@ -24,6 +24,7 @@ import de.jackwhite20.cascade.shared.protocol.listener.PacketListener;
 import de.jackwhite20.cascade.shared.protocol.packet.internal.UDPPortPacket;
 import de.jackwhite20.cascade.shared.session.ProtocolType;
 import de.jackwhite20.cascade.shared.session.Session;
+import de.jackwhite20.cascade.shared.session.impl.SessionImpl;
 
 /**
  * Created by JackWhite20 on 02.01.2016.
@@ -40,6 +41,6 @@ public class InternalPacketListener implements PacketListener {
     @PacketHandler
     public void onUdpPortPacket(Session session, UDPPortPacket udpPortPacket, ProtocolType type) {
 
-        server.registerDatagramChannel(session, udpPortPacket.port());
+        server.registerDatagramChannel(((SessionImpl) session), udpPortPacket.port());
     }
 }

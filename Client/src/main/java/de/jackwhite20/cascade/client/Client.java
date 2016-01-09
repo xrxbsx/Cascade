@@ -25,8 +25,8 @@ import de.jackwhite20.cascade.shared.protocol.Protocol;
 import de.jackwhite20.cascade.shared.protocol.packet.Packet;
 import de.jackwhite20.cascade.shared.protocol.packet.internal.UDPPortPacket;
 import de.jackwhite20.cascade.shared.session.ProtocolType;
-import de.jackwhite20.cascade.shared.session.Session;
 import de.jackwhite20.cascade.shared.session.SessionListener;
+import de.jackwhite20.cascade.shared.session.impl.SessionImpl;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -52,7 +52,7 @@ public class Client implements Disconnectable {
 
     private DatagramChannel datagramChannel;
 
-    private Session session;
+    private SessionImpl session;
 
     private String host;
 
@@ -262,7 +262,7 @@ public class Client implements Disconnectable {
      *
      * @return the session.
      */
-    public Session session() {
+    public SessionImpl session() {
 
         return session;
     }
@@ -366,7 +366,7 @@ public class Client implements Disconnectable {
 
                             SelectionKey tcpRead = socketChannel.register(selector, SelectionKey.OP_READ);
 
-                            session = new Session(ID_COUNTER.getAndIncrement(), socketChannel, settings.listener(), Client.this, settings.compressionThreshold(), settings.protocol());
+                            session = new SessionImpl(ID_COUNTER.getAndIncrement(), socketChannel, settings.listener(), Client.this, settings.compressionThreshold(), settings.protocol());
                             tcpRead.attach(session);
 
                             connected = true;
@@ -389,7 +389,7 @@ public class Client implements Disconnectable {
                         }
 
                         if(key.isValid() && key.isReadable()) {
-                            Session session = (Session) key.attachment();
+                            SessionImpl session = (SessionImpl) key.attachment();
 
                             if(session == null)
                                 continue;

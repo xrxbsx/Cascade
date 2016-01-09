@@ -26,7 +26,6 @@ import de.jackwhite20.cascade.shared.session.Session;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
