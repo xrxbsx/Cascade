@@ -236,7 +236,7 @@ public class SessionImpl implements Session {
         PacketWriter packetWriter = new PacketWriter();
 
         try {
-            packetWriter.writeByte(packet.getClass().getAnnotation(PacketInfo.class).id());
+            packetWriter.writeByte(protocol.findId(packet.getClass()));
             packet.write(packetWriter);
 
             byte[] buffer = packetWriter.bytes();

@@ -36,6 +36,7 @@ import java.util.HashMap;
 public class Protocol {
 
     private HashMap<Byte, Class<? extends Packet>> packets = new HashMap<>();
+    private HashMap<Class<? extends Packet>, Byte> packetByteMap = new HashMap<>();
 
     private HashMap<Class<?>, Listeners> listeners = new HashMap<>();
 
@@ -60,6 +61,7 @@ public class Protocol {
             throw new IllegalArgumentException("packet with id " + id + " is already registered");
 
         packets.put(id, clazz);
+        packetByteMap.put(clazz, id);
     }
 
     /**
@@ -83,6 +85,7 @@ public class Protocol {
             throw new IllegalArgumentException("packet with id " + id + " is not registered");
 
         packets.remove(id);
+        packetByteMap.remove(clazz);
     }
 
     /**
@@ -115,7 +118,7 @@ public class Protocol {
     }
 
     /**
-     * Unregisters a packet listener.
+     * Unregisters a packet listener and it's method for the packet handler.
      *
      * @param packetListener the listener.
      */
@@ -149,7 +152,7 @@ public class Protocol {
      * @param packet the packet instance.
      * @param protocolType the protocol type.
      */
-    public void call(Class<?> clazz, Session session, Packet packet, ProtocolType protocolType) {
+    public void call(Class<? extends Packet> clazz, Session session, Packet packet, ProtocolType protocolType) {
 
         if(clazz == null)
             throw new IllegalArgumentException("clazz cannot be null");
@@ -161,6 +164,17 @@ public class Protocol {
             throw new IllegalArgumentException("packet cannot be null");
 
         listeners.get(clazz).call(session, packet, protocolType);
+    }
+
+    /**
+     * Gets the id from the packet class with which it was registered.
+     *
+     * @param clazz the class.
+     * @return the packet id.
+     */
+    public byte findId(Class<? extends Packet> clazz) {
+
+        return packetByteMap.get(clazz);
     }
 
     /**
