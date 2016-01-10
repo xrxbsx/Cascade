@@ -33,23 +33,73 @@ import java.util.List;
  */
 public interface Session {
 
+    /**
+     * Closed and disconnects the session.
+     */
     void close();
 
+    /**
+     * Sends a packet with the given protocol type.
+     *
+     * @param packet the packet.
+     * @param protocolType the protocol type.
+     */
     void send(Packet packet, ProtocolType protocolType);
 
+    /**
+     * Gets the id from the session.
+     *
+     * @return the id.
+     */
     int id();
 
+    /**
+     * Gets the socket channel from this session.
+     *
+     * @return the socket channel.
+     */
     SocketChannel socketChannel();
 
+    /**
+     * Gets the datagram channel from this session.
+     *
+     * @return the datagram channel.
+     */
     DatagramChannel datagramChannel();
 
+    /**
+     * Gets the compressor object from this session.
+     * It is used to compress or decompress data.
+     *
+     * @return the compressor object.
+     */
     Compressor compressor();
 
+    /**
+     * Gets the compression threshold.
+     *
+     * @return the compression threshold.
+     */
     int compressionThreshold();
 
+    /**
+     * Gets a list with the session listeners.
+     *
+     * @return the list of session listeners.
+     */
     List<SessionListener> listener();
 
+    /**
+     * Gets the protocol class with which packets and packet listeners are registered.
+     *
+     * @return the protocol.
+     */
     Protocol protocol();
 
+    /**
+     * Gets the remote socket address from the session.
+     *
+     * @return the remote socket address.
+     */
     SocketAddress remoteAddress();
 }
