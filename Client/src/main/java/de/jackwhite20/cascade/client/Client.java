@@ -25,6 +25,7 @@ import de.jackwhite20.cascade.shared.protocol.Protocol;
 import de.jackwhite20.cascade.shared.protocol.packet.Packet;
 import de.jackwhite20.cascade.shared.protocol.packet.internal.UDPPortPacket;
 import de.jackwhite20.cascade.shared.session.ProtocolType;
+import de.jackwhite20.cascade.shared.session.Session;
 import de.jackwhite20.cascade.shared.session.SessionListener;
 import de.jackwhite20.cascade.shared.session.impl.SessionImpl;
 
@@ -52,7 +53,7 @@ public class Client implements Disconnectable {
 
     private DatagramChannel datagramChannel;
 
-    private SessionImpl session;
+    private Session session;
 
     private String host;
 
@@ -262,7 +263,7 @@ public class Client implements Disconnectable {
      *
      * @return the session.
      */
-    public SessionImpl session() {
+    public Session session() {
 
         return session;
     }
@@ -382,7 +383,7 @@ public class Client implements Disconnectable {
 
                                 SelectionKey udpRead = datagramChannel.register(selector, SelectionKey.OP_READ);
                                 udpRead.attach(session);
-                                session.datagramChannel(datagramChannel);
+                                ((SessionImpl) session).datagramChannel(datagramChannel);
 
                                 session.send(new UDPPortPacket(datagramChannel.socket().getLocalPort()), ProtocolType.TCP);
                             }
