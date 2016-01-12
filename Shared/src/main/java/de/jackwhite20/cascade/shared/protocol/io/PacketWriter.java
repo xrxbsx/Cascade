@@ -21,6 +21,9 @@ package de.jackwhite20.cascade.shared.protocol.io;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
+import java.io.IOException;
+import java.util.Date;
+import java.util.UUID;
 
 /**
  * Created by JackWhite20 on 02.01.2016.
@@ -39,6 +42,27 @@ public class PacketWriter extends DataOutputStream {
     public PacketWriter() {
 
         this(new ByteArrayOutputStream());
+    }
+
+    public void writeUUID(UUID uuid) throws IOException {
+
+        writeLong(uuid.getMostSignificantBits());
+        writeLong(uuid.getLeastSignificantBits());
+    }
+
+    public void writeDate(Date date) throws IOException {
+
+        writeLong(date.getTime());
+    }
+
+    public <V extends Enum> void writeEnum(V v) throws IOException {
+
+        writeInt(v.ordinal());
+    }
+
+    public void writeString(String string) throws IOException {
+
+        writeUTF(string);
     }
 
     public byte[] bytes() {

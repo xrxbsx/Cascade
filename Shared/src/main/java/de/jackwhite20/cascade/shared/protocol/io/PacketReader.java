@@ -21,6 +21,9 @@ package de.jackwhite20.cascade.shared.protocol.io;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
+import java.io.IOException;
+import java.util.Date;
+import java.util.UUID;
 
 /**
  * Created by JackWhite20 on 02.01.2016.
@@ -35,5 +38,25 @@ public class PacketReader extends DataInputStream {
     public PacketReader(byte[] buffer) {
 
         this(new ByteArrayInputStream(buffer));
+    }
+
+    public UUID readUUID() throws IOException {
+
+        return new UUID(readLong(), readLong());
+    }
+
+    public Date readDate() throws IOException {
+
+        return new Date(readLong());
+    }
+
+    public <V extends Enum> V readEnum(Class<V> clazz) throws IOException {
+
+        return clazz.getEnumConstants()[readInt()];
+    }
+
+    public String readString() throws IOException {
+
+        return readUTF();
     }
 }
