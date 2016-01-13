@@ -183,6 +183,16 @@ public class Client implements Disconnectable {
     }
 
     /**
+     * Sends a packet over TCP (ProtocolType.TCP).
+     *
+     * @param packet the packet.
+     */
+    public void send(Packet packet) {
+
+        session.send(packet);
+    }
+
+    /**
      * Disconnects the client.
      */
     public void disconnect() {
