@@ -32,6 +32,9 @@ public class ChatPacket extends Packet {
 
     private String message;
 
+    /**
+     * The default constructor in classes which extends Packet are important.
+     */
     public ChatPacket() {
 
     }
