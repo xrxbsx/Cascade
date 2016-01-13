@@ -13,6 +13,7 @@ Cascade is in an stable state and tested.
 - UDP and TCP support
 - packets
 - protocol system
+- callback system
 - buffer pooling (in progress)
 
 ## Important
