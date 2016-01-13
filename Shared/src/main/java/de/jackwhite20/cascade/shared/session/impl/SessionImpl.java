@@ -27,7 +27,6 @@ import de.jackwhite20.cascade.shared.protocol.Protocol;
 import de.jackwhite20.cascade.shared.protocol.io.PacketReader;
 import de.jackwhite20.cascade.shared.protocol.io.PacketWriter;
 import de.jackwhite20.cascade.shared.protocol.packet.Packet;
-import de.jackwhite20.cascade.shared.protocol.packet.PacketInfo;
 import de.jackwhite20.cascade.shared.session.ProtocolType;
 import de.jackwhite20.cascade.shared.session.Session;
 import de.jackwhite20.cascade.shared.session.SessionListener;
@@ -262,6 +261,12 @@ public class SessionImpl implements Session {
 
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void send(Packet packet) {
+
+        send(packet, ProtocolType.TCP);
     }
 
     public int id() {

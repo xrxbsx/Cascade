@@ -47,6 +47,13 @@ public interface Session {
     void send(Packet packet, ProtocolType protocolType);
 
     /**
+     * Sends a packet over TCP (ProtocolType.TCP).
+     *
+     * @param packet the packet.
+     */
+    void send(Packet packet);
+
+    /**
      * Gets the id from the session.
      *
      * @return the id.
