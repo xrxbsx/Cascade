@@ -21,8 +21,11 @@ package de.jackwhite20.cascade.client;
 
 import de.jackwhite20.cascade.shared.CascadeSettings;
 import de.jackwhite20.cascade.shared.Disconnectable;
+import de.jackwhite20.cascade.shared.callback.PacketCallback;
 import de.jackwhite20.cascade.shared.protocol.Protocol;
 import de.jackwhite20.cascade.shared.protocol.packet.Packet;
+import de.jackwhite20.cascade.shared.protocol.packet.RequestPacket;
+import de.jackwhite20.cascade.shared.protocol.packet.ResponsePacket;
 import de.jackwhite20.cascade.shared.protocol.packet.internal.UDPPortPacket;
 import de.jackwhite20.cascade.shared.session.ProtocolType;
 import de.jackwhite20.cascade.shared.session.Session;
@@ -190,6 +193,31 @@ public class Client implements Disconnectable {
     public void send(Packet packet) {
 
         session.send(packet);
+    }
+
+    /**
+     * Sends a packet and executes the packet callback when the response packet gets received.
+     * The response packet must extend ResponsePacket.
+     *
+     * @param packet the packet.
+     * @param protocolType the the protocol type.
+     * @param packetCallback the packet callback.
+     */
+    public <T extends ResponsePacket> void send(RequestPacket packet, ProtocolType protocolType, PacketCallback<T> packetCallback) {
+
+        session.send(packet, protocolType, packetCallback);
+    }
+
+    /**
+     * Sends a packet over TCP (ProtocolType.TCP) and executes the packet callback when the response packet gets received.
+     * The response packet must extend ResponsePacket.
+     *
+     * @param packet the packet.
+     * @param packetCallback the packet callback.
+     */
+    public <T extends ResponsePacket> void send(RequestPacket packet, PacketCallback<T> packetCallback) {
+
+        session.send(packet, packetCallback);
     }
 
     /**

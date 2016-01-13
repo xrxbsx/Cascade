@@ -20,8 +20,11 @@
 package de.jackwhite20.cascade.shared.session;
 
 import de.jackwhite20.cascade.shared.Compressor;
+import de.jackwhite20.cascade.shared.callback.PacketCallback;
 import de.jackwhite20.cascade.shared.protocol.Protocol;
 import de.jackwhite20.cascade.shared.protocol.packet.Packet;
+import de.jackwhite20.cascade.shared.protocol.packet.RequestPacket;
+import de.jackwhite20.cascade.shared.protocol.packet.ResponsePacket;
 
 import java.net.SocketAddress;
 import java.nio.channels.DatagramChannel;
@@ -52,6 +55,25 @@ public interface Session {
      * @param packet the packet.
      */
     void send(Packet packet);
+
+    /**
+     * Sends a packet and executes the packet callback when the response packet gets received.
+     * The response packet must extend ResponsePacket.
+     *
+     * @param packet the request packet.
+     * @param protocolType the the protocol type.
+     * @param packetCallback the packet callback.
+     */
+    <T extends ResponsePacket> void send(RequestPacket packet, ProtocolType protocolType, PacketCallback<T> packetCallback);
+
+    /**
+     * Sends a packet over TCP (ProtocolType.TCP) and executes the packet callback when the response packet gets received.
+     * The response packet must extend ResponsePacket.
+     *
+     * @param packet the request packet.
+     * @param packetCallback the packet callback.
+     */
+    <T extends ResponsePacket> void send(RequestPacket packet, PacketCallback<T> packetCallback);
 
     /**
      * Gets the id from the session.

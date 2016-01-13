@@ -21,12 +21,15 @@ package de.jackwhite20.cascade.shared.session.impl;
 
 import de.jackwhite20.cascade.shared.Compressor;
 import de.jackwhite20.cascade.shared.Disconnectable;
+import de.jackwhite20.cascade.shared.callback.PacketCallback;
 import de.jackwhite20.cascade.shared.pool.BufferPool;
 import de.jackwhite20.cascade.shared.pool.ByteBuf;
 import de.jackwhite20.cascade.shared.protocol.Protocol;
 import de.jackwhite20.cascade.shared.protocol.io.PacketReader;
 import de.jackwhite20.cascade.shared.protocol.io.PacketWriter;
 import de.jackwhite20.cascade.shared.protocol.packet.Packet;
+import de.jackwhite20.cascade.shared.protocol.packet.RequestPacket;
+import de.jackwhite20.cascade.shared.protocol.packet.ResponsePacket;
 import de.jackwhite20.cascade.shared.session.ProtocolType;
 import de.jackwhite20.cascade.shared.session.Session;
 import de.jackwhite20.cascade.shared.session.SessionListener;
@@ -38,6 +41,7 @@ import java.nio.channels.DatagramChannel;
 import java.nio.channels.SocketChannel;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by JackWhite20 on 13.10.2015.
@@ -73,6 +77,8 @@ public class SessionImpl implements Session {
     private boolean disconnected = false;
 
     private Protocol protocol;
+
+    private ConcurrentHashMap<Integer, PacketCallback> callbackPackets = new ConcurrentHashMap<>();
 
     public SessionImpl(int id, SocketChannel socketChannel, List<SessionListener> listener, Disconnectable disconnectable, int compressionThreshold, Protocol protocol) {
 
@@ -122,6 +128,7 @@ public class SessionImpl implements Session {
         disconnected = true;
     }
 
+    @SuppressWarnings("all")
     public void readSocket() {
 
         int read;
@@ -181,7 +188,13 @@ public class SessionImpl implements Session {
                 Packet packet = protocol.create(packetId);
                 packet.read(packetReader);
 
-                protocol.call(packet.getClass(), this, packet, ProtocolType.TCP);
+                if (!(packet instanceof ResponsePacket)) {
+                    protocol.call(packet.getClass(), this, packet, ProtocolType.TCP);
+                }else {
+                    ResponsePacket callbackPacket = ((ResponsePacket) packet);
+                    if(callbackPackets.containsKey(callbackPacket.callbackId()))
+                        callbackPackets.get(callbackPacket.callbackId()).receive(callbackPacket);
+                }
             } catch (Exception e) {
                 e.printStackTrace();
                 close();
@@ -191,6 +204,7 @@ public class SessionImpl implements Session {
         tcpBuffer.compact();
     }
 
+    @SuppressWarnings("all")
     public void readDatagram() {
 
         try {
@@ -215,7 +229,13 @@ public class SessionImpl implements Session {
                     Packet packet = protocol.create(packetId);
                     packet.read(packetReader);
 
-                    protocol.call(packet.getClass(), this, packet, ProtocolType.UDP);
+                    if (!(packet instanceof ResponsePacket)) {
+                        protocol.call(packet.getClass(), this, packet, ProtocolType.UDP);
+                    }else {
+                        ResponsePacket callbackPacket = ((ResponsePacket) packet);
+                        if(callbackPackets.containsKey(callbackPacket.callbackId()))
+                            callbackPackets.get(callbackPacket.callbackId()).receive(callbackPacket);
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                     close();
@@ -267,6 +287,20 @@ public class SessionImpl implements Session {
     public void send(Packet packet) {
 
         send(packet, ProtocolType.TCP);
+    }
+
+    @Override
+    public <T extends ResponsePacket> void send(RequestPacket packet, ProtocolType protocolType, PacketCallback<T> packetCallback) {
+
+        callbackPackets.put(packet.callbackId(), packetCallback);
+
+        send(packet, protocolType);
+    }
+
+    @Override
+    public <T extends ResponsePacket> void send(RequestPacket packet, PacketCallback<T> packetCallback) {
+
+        send(packet, ProtocolType.TCP, packetCallback);
     }
 
     public int id() {
