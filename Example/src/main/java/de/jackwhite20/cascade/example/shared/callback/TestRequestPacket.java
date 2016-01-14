@@ -33,6 +33,9 @@ public class TestRequestPacket extends RequestPacket {
     // Some example data for the request
     private int id;
 
+    /**
+     * The default constructor in classes which extends Packet are important.
+     */
     public TestRequestPacket() {
 
     }
