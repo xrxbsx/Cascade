@@ -174,6 +174,9 @@ public class Protocol {
      */
     public byte findId(Class<? extends Packet> clazz) {
 
+        if(!packetByteMap.containsKey(clazz))
+            throw new IllegalStateException("the class " + clazz.getSimpleName() + " is not registered as a packet");
+
         return packetByteMap.get(clazz);
     }
 
