@@ -48,6 +48,9 @@ If you don't want the client and the server in your project you can use **cascad
 - [EchoClientProtocol](https://github.com/JackWhite20/Cascade/blob/master/Example/src/main/java/de/jackwhite20/cascade/example/client/echo/EchoClientProtocol.java)
 - [EchoClientPacketListener](https://github.com/JackWhite20/Cascade/blob/master/Example/src/main/java/de/jackwhite20/cascade/example/client/echo/EchoClientPacketListener.java)
 
+### Echo-Packets
+- [ChatPacket](https://github.com/JackWhite20/Cascade/blob/master/Example/src/main/java/de/jackwhite20/cascade/example/shared/echo/ChatPacket.java)
+
 ### Byte-Array-Server
 - [ByteArrayServer](https://github.com/JackWhite20/Cascade/blob/master/Example/src/main/java/de/jackwhite20/cascade/example/server/bytes/ByteArrayServer.java)
 
