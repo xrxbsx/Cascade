@@ -14,7 +14,7 @@ Cascade is in an stable state and tested.
 - packets
 - protocol system
 - callback system
-- buffer pooling (in progress)
+- buffer pooling
 
 ## Important
 Packet id -128 is used for internal UDP port handling, so it is better to not use this id. Maybe some other negative ids will be used for internal stuff such as cryptography in the future. 
