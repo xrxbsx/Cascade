@@ -27,7 +27,6 @@ import de.jackwhite20.cascade.shared.protocol.listener.PacketListener;
 import de.jackwhite20.cascade.shared.session.ProtocolType;
 import de.jackwhite20.cascade.shared.session.Session;
 import de.jackwhite20.cascade.shared.session.SessionListenerAdapter;
-import de.jackwhite20.cascade.shared.session.impl.SessionImpl;
 
 import java.net.StandardSocketOptions;
 
@@ -104,7 +103,7 @@ public class EchoServer extends SessionListenerAdapter implements PacketListener
      * The second param needs to be your packet class for which this method is responsible for.
      */
     @PacketHandler
-    public void onChatPacket(SessionImpl session, ChatPacket chatPacket, ProtocolType type) {
+    public void onChatPacket(Session session, ChatPacket chatPacket, ProtocolType type) {
 
         System.out.println("Received from Client " + session.id() + ": " + chatPacket.message());
 

@@ -26,7 +26,7 @@ import de.jackwhite20.cascade.shared.protocol.impl.ByteArrayProtocol;
 import de.jackwhite20.cascade.shared.protocol.listener.PacketHandler;
 import de.jackwhite20.cascade.shared.protocol.listener.PacketListener;
 import de.jackwhite20.cascade.shared.session.ProtocolType;
-import de.jackwhite20.cascade.shared.session.impl.SessionImpl;
+import de.jackwhite20.cascade.shared.session.Session;
 
 import java.net.StandardSocketOptions;
 
@@ -78,7 +78,7 @@ public class ByteArrayServer implements PacketListener {
     }
 
     @PacketHandler
-    public void onByteArrayPacket(SessionImpl session, ByteArrayPacket byteArrayPacket, ProtocolType type) {
+    public void onByteArrayPacket(Session session, ByteArrayPacket byteArrayPacket, ProtocolType type) {
 
         byte[] bytes = byteArrayPacket.bytes();
 
