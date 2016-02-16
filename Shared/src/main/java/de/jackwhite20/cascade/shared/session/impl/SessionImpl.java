@@ -303,6 +303,12 @@ public class SessionImpl implements Session {
         send(packet, ProtocolType.TCP, packetCallback);
     }
 
+    @Override
+    public boolean connected() {
+
+        return socketChannel.isConnected() && !disconnected;
+    }
+
     public int id() {
 
         return id;
@@ -346,15 +352,5 @@ public class SessionImpl implements Session {
     public SocketAddress remoteAddress() {
 
         return remoteAddress;
-    }
-
-    public ByteBuffer tcpBuffer() {
-
-        return tcpBuffer;
-    }
-
-    public ByteBuffer udpBuffer() {
-
-        return udpBuffer;
     }
 }

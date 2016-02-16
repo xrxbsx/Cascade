@@ -131,4 +131,12 @@ public interface Session {
      * @return the remote socket address.
      */
     SocketAddress remoteAddress();
+
+    /**
+     * Returns true if the session is connected to a remote host.
+     * Otherwise it will return false.
+     *
+     * @return if the session is connected to a remote host or not.
+     */
+    boolean connected();
 }
