@@ -416,7 +416,7 @@ public class Client implements Disconnectable {
                                 settings.listener().forEach(sessionListener -> sessionListener.onConnected(session));
                             }else {
                                 datagramChannel = DatagramChannel.open();
-                                datagramChannel.bind(new InetSocketAddress("localhost", 0));
+                                datagramChannel.bind(new InetSocketAddress("0.0.0.0", 0));
                                 datagramChannel.configureBlocking(false);
 
                                 SelectionKey udpRead = datagramChannel.register(selector, SelectionKey.OP_READ);
