@@ -33,7 +33,7 @@ It is preferably to use the ids between 0 and 127 first.
 <dependency>
     <groupId>de.jackwhite20</groupId>
     <artifactId>cascade-all</artifactId>
-    <version>0.1-SNAPSHOT</version>
+    <version>0.2-SNAPSHOT</version>
 </dependency>
 ```
 
