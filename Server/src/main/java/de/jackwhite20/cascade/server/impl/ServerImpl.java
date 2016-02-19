@@ -21,12 +21,23 @@ package de.jackwhite20.cascade.server.impl;
 
 import de.jackwhite20.cascade.server.Server;
 import de.jackwhite20.cascade.server.ServerConfig;
+import de.jackwhite20.cascade.server.impl.selector.SelectorThread;
+import de.jackwhite20.cascade.server.impl.selector.SelectorThreadFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
+import java.nio.channels.SocketChannel;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Created by JackWhite20 on 19.02.2016.
@@ -42,6 +53,16 @@ public class ServerImpl implements Server {
     private ServerSocketChannel serverSocketChannel;
 
     private Selector selector;
+
+    private ExecutorService selectorPool;
+
+    private AtomicInteger idCounter = new AtomicInteger(0);
+
+    private List<SelectorThread> selectorThreads = new ArrayList<>();
+
+    private AtomicInteger selectorCounter = new AtomicInteger(0);
+
+    private ReentrantLock selectorLock = new ReentrantLock();
 
     public ServerImpl(ServerConfig serverConfig) {
 
@@ -62,7 +83,18 @@ public class ServerImpl implements Server {
             selector = Selector.open();
             serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
 
+            selectorPool = Executors.newFixedThreadPool(serverConfig.selectorCount() + 1, new SelectorThreadFactory());
+
             running = true;
+
+            selectorPool.execute(new AcceptThread());
+
+            for (int i = 1; i <= serverConfig.selectorCount(); i++) {
+                SelectorThread selectorThread = new SelectorThread(i, selectorLock);
+                selectorThreads.add(selectorThread);
+
+                selectorPool.execute(selectorThread);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -88,11 +120,96 @@ public class ServerImpl implements Server {
                 e.printStackTrace();
             }
         }
+
+        // Try to shutdown the multiplexing selector threads
+        selectorThreads.forEach(SelectorThread::shutdown);
+
+        // Shutdown the pool for the selectors
+        selectorPool.shutdown();
     }
 
     @Override
     public boolean running() {
 
         return running;
+    }
+
+    private int nextId() {
+
+        return idCounter.getAndIncrement();
+    }
+
+    private SelectorThread nextSelector() {
+
+        int next = selectorCounter.getAndIncrement();
+
+        if(next >= selectorThreads.size()) {
+            selectorCounter.set(0);
+            next = 0;
+        }
+
+        return selectorThreads.get(next);
+    }
+
+    private class AcceptThread implements Runnable {
+
+        @Override
+        public void run() {
+            while (running) {
+                try {
+                    if (selector.select() == 0)
+                        continue;
+
+                    Set<SelectionKey> keys = selector.selectedKeys();
+                    Iterator<SelectionKey> keyIterator = keys.iterator();
+
+                    while (keyIterator.hasNext()) {
+                        SelectionKey key = keyIterator.next();
+
+                        keyIterator.remove();
+
+                        if(!key.isValid())
+                            continue;
+
+                        if(key.isAcceptable()) {
+                            SocketChannel socketChannel = serverSocketChannel.accept();
+
+                            if(socketChannel == null)
+                                continue;
+
+                            // We don't want a blocking channel
+                            socketChannel.configureBlocking(false);
+
+                            SelectorThread selectorThread = nextSelector();
+                            Selector nextSelector = selectorThread.selector();
+
+                            selectorLock.lock();
+
+                            // Wake the selector up so it returns from the select method
+                            nextSelector.wakeup();
+
+                            SelectionKey tcpKey;
+                            try {
+                                tcpKey = socketChannel.register(nextSelector, SelectionKey.OP_READ);
+                            } catch (Exception e) {
+                                socketChannel.close();
+                                e.printStackTrace();
+                                continue;
+                            }
+
+                            selectorLock.unlock();
+
+                            int clientId = nextId();
+
+                            // TODO: 19.02.2016
+                        }
+                    }
+
+                    keys.clear();
+                } catch (Exception ignored) {
+                    // TODO: Decide if we should break or continue
+                }
+            }
+        }
     }
 }
