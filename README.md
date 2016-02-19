@@ -3,7 +3,7 @@ Cascade is a simple but powerful event driven network framework.
 
 Cascade is in an stable state and tested.
 
-**I will rewrite some core code and API implementations in the next days. Some small API changes will occur but the main usage will be likely the same.**
+**I will rewrite some core code and API implementations in the next days. Some API changes will occur.**
 
 ## Why Cascade?
 
