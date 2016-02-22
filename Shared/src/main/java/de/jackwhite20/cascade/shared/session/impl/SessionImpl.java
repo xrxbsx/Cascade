@@ -100,13 +100,15 @@ public class SessionImpl implements Session {
             try {
                 if (socketChannel != null)
                     socketChannel.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
 
+            try {
                 if (datagramChannel != null)
                     datagramChannel.close();
-            } catch (Exception ignore) {
-                
-            } finally {
-                // TODO: 19.02.2016
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
 
