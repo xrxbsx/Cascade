@@ -1,0 +1,118 @@
+/*
+ * Copyright (c) 2015 "JackWhite20"
+ *
+ * This file is part of Cascade.
+ *
+ * Cascade is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package de.jackwhite20.cascade.shared.session;
+
+import de.jackwhite20.cascade.shared.callback.PacketCallback;
+import de.jackwhite20.cascade.shared.protocol.Protocol;
+import de.jackwhite20.cascade.shared.protocol.packet.Packet;
+import de.jackwhite20.cascade.shared.protocol.packet.RequestPacket;
+import de.jackwhite20.cascade.shared.protocol.packet.ResponsePacket;
+
+import java.net.SocketAddress;
+import java.nio.channels.DatagramChannel;
+import java.nio.channels.SocketChannel;
+
+/**
+ * Created by JackWhite20 on 09.01.2016.
+ */
+public interface Session {
+
+    /**
+     * Closed and disconnects the session.
+     */
+    void close();
+
+    /**
+     * Sends a packet with the given protocol type.
+     *
+     * @param packet the packet.
+     * @param protocolType the protocol type.
+     */
+    void send(Packet packet, ProtocolType protocolType);
+
+    /**
+     * Sends a packet over TCP (ProtocolType.TCP).
+     *
+     * @param packet the packet.
+     */
+    void send(Packet packet);
+
+    /**
+     * Sends a packet and executes the packet callback when the response packet gets received.
+     * The response packet must extend ResponsePacket.
+     *
+     * @param packet the request packet.
+     * @param protocolType the the protocol type.
+     * @param packetCallback the packet callback.
+     */
+    <T extends ResponsePacket> void send(RequestPacket packet, ProtocolType protocolType, PacketCallback<T> packetCallback);
+
+    /**
+     * Sends a packet over TCP (ProtocolType.TCP) and executes the packet callback when the response packet gets received.
+     * The response packet must extend ResponsePacket.
+     *
+     * @param packet the request packet.
+     * @param packetCallback the packet callback.
+     */
+    <T extends ResponsePacket> void send(RequestPacket packet, PacketCallback<T> packetCallback);
+
+    /**
+     * Gets the id from the session.
+     *
+     * @return the id.
+     */
+    int id();
+
+    /**
+     * Gets the socket channel from this session.
+     *
+     * @return the socket channel.
+     */
+    SocketChannel socketChannel();
+
+    /**
+     * Gets the datagram channel from this session.
+     *
+     * @return the datagram channel.
+     */
+    DatagramChannel datagramChannel();
+
+    /**
+     * Gets the protocol class with which packets and packet listeners are registered.
+     *
+     * @return the protocol.
+     */
+    Protocol protocol();
+
+    /**
+     * Gets the remote socket address from the session.
+     *
+     * @return the remote socket address.
+     */
+    SocketAddress remoteAddress();
+
+    /**
+     * Returns true if the session is connected to a remote host.
+     * Otherwise it will return false.
+     *
+     * @return if the session is connected to a remote host or not.
+     */
+    boolean connected();
+}
