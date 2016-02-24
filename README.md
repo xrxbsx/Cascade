@@ -11,12 +11,11 @@ Cascade is in an stable state and tested.
 - fast setup
 - lightweight
 - simple API design
-- powerful NIO implementation
-- UDP and TCP support
+- powerful NIO implementation with the reactor pattern
+- TCP support (UDP will follow)
 - packets
 - protocol system
 - callback system
-- buffer pooling
 
 ## Important
 Packet id -128 is used for internal UDP port handling, so it is better to not use this id. Maybe some other negative ids will be used for internal stuff such as cryptography in the future. 
