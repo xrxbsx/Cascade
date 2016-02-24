@@ -17,12 +17,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.jackwhite20.cascade.shared;
+package de.jackwhite20.cascade.shared.server;
+
+import de.jackwhite20.cascade.shared.session.SessionListener;
+
+import java.util.concurrent.ExecutorService;
 
 /**
- * Created by JackWhite20 on 17.10.2015.
+ * Created by JackWhite20 on 24.02.2016.
  */
-public interface Disconnectable {
+public interface Reactor {
 
-    void disconnect();
+    SessionListener sessionListener();
+
+    ExecutorService workerThreadPool();
 }

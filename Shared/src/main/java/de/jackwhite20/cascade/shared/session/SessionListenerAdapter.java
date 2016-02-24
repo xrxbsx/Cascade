@@ -25,11 +25,6 @@ package de.jackwhite20.cascade.shared.session;
 public class SessionListenerAdapter implements SessionListener {
 
     @Override
-    public void onException(Session session, Throwable throwable) {
-
-    }
-
-    @Override
     public void onDisconnected(Session session) {
 
     }

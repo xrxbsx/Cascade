@@ -24,7 +24,6 @@ import de.jackwhite20.cascade.shared.protocol.listener.PacketHandler;
 import de.jackwhite20.cascade.shared.protocol.listener.PacketListener;
 import de.jackwhite20.cascade.shared.protocol.packet.Packet;
 import de.jackwhite20.cascade.shared.protocol.packet.PacketInfo;
-import de.jackwhite20.cascade.shared.session.ProtocolType;
 import de.jackwhite20.cascade.shared.session.Session;
 
 import java.lang.reflect.Method;
@@ -99,7 +98,7 @@ public class Protocol {
             throw new IllegalArgumentException("packetListener cannot be null");
 
         for (Method method : packetListener.getClass().getDeclaredMethods()) {
-            if(method.getParameterCount() != 3)
+            if(method.getParameterCount() != 2)
                 continue;
 
             if(!method.isAnnotationPresent(PacketHandler.class))
@@ -128,7 +127,7 @@ public class Protocol {
             throw new IllegalArgumentException("packetListener cannot be null");
 
         for (Method method : packetListener.getClass().getDeclaredMethods()) {
-            if(method.getParameterCount() != 3)
+            if(method.getParameterCount() != 2)
                 continue;
 
             if(!method.isAnnotationPresent(PacketHandler.class))
@@ -150,9 +149,8 @@ public class Protocol {
      * @param clazz the packet class.
      * @param session the session.
      * @param packet the packet instance.
-     * @param protocolType the protocol type.
      */
-    public void call(Class<? extends Packet> clazz, Session session, Packet packet, ProtocolType protocolType) {
+    public void call(Class<? extends Packet> clazz, Session session, Packet packet) {
 
         if(clazz == null)
             throw new IllegalArgumentException("clazz cannot be null");
@@ -163,7 +161,12 @@ public class Protocol {
         if(packet == null)
             throw new IllegalArgumentException("packet cannot be null");
 
-        listeners.get(clazz).call(session, packet, protocolType);
+        Listeners l = listeners.get(clazz);
+        if(l != null) {
+            l.call(session, packet);
+        } else {
+            throw new IllegalStateException("no listener for packet " + clazz.getName());
+        }
     }
 
     /**

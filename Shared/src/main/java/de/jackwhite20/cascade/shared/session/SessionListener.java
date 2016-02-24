@@ -27,6 +27,4 @@ public interface SessionListener {
     void onConnected(Session session);
 
     void onDisconnected(Session session);
-
-    void onException(Session session, Throwable throwable);
 }
