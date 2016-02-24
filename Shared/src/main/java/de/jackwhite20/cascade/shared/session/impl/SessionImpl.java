@@ -28,6 +28,7 @@ import de.jackwhite20.cascade.shared.protocol.packet.RequestPacket;
 import de.jackwhite20.cascade.shared.protocol.packet.ResponsePacket;
 import de.jackwhite20.cascade.shared.server.Reactor;
 import de.jackwhite20.cascade.shared.session.Session;
+import de.jackwhite20.cascade.shared.session.SessionListener;
 
 import java.io.IOException;
 import java.net.SocketAddress;
@@ -118,15 +119,8 @@ public class SessionImpl implements Session, Runnable {
                         break;
                     }
 
-                    System.out.println("ReadableBytes: " + readableBytes);
-
                     byte[] bytes = new byte[readableBytes];
                     readBuf.get(bytes);
-
-                    if (bytes.length == 0) {
-                        System.err.println("0 bytes!");
-                        System.exit(0);
-                    }
 
                     reactor.workerThreadPool().execute(() -> process(bytes));
                 }
@@ -164,8 +158,6 @@ public class SessionImpl implements Session, Runnable {
     @Override
     public void run() {
 
-        System.out.println("Readable: " + selectionKey.isReadable());
-        System.out.println("Writeable: " + selectionKey.isWritable());
         try {
             if (selectionKey.isReadable()) {
                 read();
@@ -190,7 +182,9 @@ public class SessionImpl implements Session, Runnable {
             e.printStackTrace();
         }
 
-        reactor.sessionListener().onDisconnected(this);
+        SessionListener sessionListener = reactor.sessionListener();
+        if(sessionListener != null)
+            sessionListener.onDisconnected(this);
 
         disconnected = true;
     }
