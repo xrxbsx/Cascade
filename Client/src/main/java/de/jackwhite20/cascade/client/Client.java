@@ -20,6 +20,7 @@
 package de.jackwhite20.cascade.client;
 
 import de.jackwhite20.cascade.shared.protocol.packet.Packet;
+import de.jackwhite20.cascade.shared.session.SessionListener;
 
 /**
  * Created by JackWhite20 on 19.02.2016.
@@ -28,8 +29,17 @@ public interface Client {
 
     /**
      * Connects the client with the passed client config.
+     *
+     * This method will block until the socket is connected or an exception is thrown.
      */
     void connect();
+
+    /**
+     * Sets the session listener.
+     *
+     * @param sessionListener the session listener.
+     */
+    void sessionListener(SessionListener sessionListener);
 
     /**
      * Disconnects the client and frees all used resources.
@@ -44,7 +54,7 @@ public interface Client {
     boolean running();
 
     /**
-     * Sends a packet over TCP (ProtocolType.TCP).
+     * Sends a packet over TCP.
      *
      * @param packet the packet.
      */
