@@ -23,7 +23,9 @@ import de.jackwhite20.cascade.client.Client;
 import de.jackwhite20.cascade.client.ClientConfig;
 import de.jackwhite20.cascade.shared.protocol.Protocol;
 import de.jackwhite20.cascade.shared.protocol.packet.Packet;
+import de.jackwhite20.cascade.shared.server.Reactor;
 import de.jackwhite20.cascade.shared.session.Session;
+import de.jackwhite20.cascade.shared.session.SessionListener;
 import de.jackwhite20.cascade.shared.session.impl.SessionImpl;
 
 import java.io.IOException;
@@ -32,14 +34,16 @@ import java.nio.channels.*;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by JackWhite20 on 19.02.2016.
  */
-public class ClientImpl implements Client {
+public class ClientImpl implements Client, Reactor {
 
-    private static final AtomicInteger ID_COUNTER = new AtomicInteger(0);
+    private AtomicInteger idCounter = new AtomicInteger(0);
 
     private boolean running = false;
 
@@ -49,9 +53,13 @@ public class ClientImpl implements Client {
 
     private SocketChannel socketChannel;
 
+    private ExecutorService workerPool;
+
     private Session session;
 
     private Protocol protocol;
+
+    private SessionListener sessionListener;
 
     private CountDownLatch connectLatch = new CountDownLatch(1);
 
@@ -65,6 +73,8 @@ public class ClientImpl implements Client {
     public void connect() {
 
         try {
+            workerPool = Executors.newFixedThreadPool(clientConfig.workerThreads() + 1);
+
             selector = Selector.open();
             socketChannel = SocketChannel.open();
             socketChannel.configureBlocking(false);
@@ -74,7 +84,7 @@ public class ClientImpl implements Client {
 
             running = true;
 
-            new Thread(new ClientThread()).start();
+            workerPool.execute(new ClientThread());
 
             connectLatch.await();
         } catch (Exception e) {
@@ -88,7 +98,6 @@ public class ClientImpl implements Client {
         running = false;
 
         if(selector != null) {
-            selector.wakeup();
             try {
                 selector.close();
             } catch (IOException e) {
@@ -103,6 +112,8 @@ public class ClientImpl implements Client {
                 e.printStackTrace();
             }
         }
+
+        workerPool.shutdown();
     }
 
     @Override
@@ -115,6 +126,24 @@ public class ClientImpl implements Client {
     public void send(Packet packet) {
 
         session.send(packet);
+    }
+
+    @Override
+    public void sessionListener(SessionListener sessionListener) {
+
+        this.sessionListener = sessionListener;
+    }
+
+    @Override
+    public SessionListener sessionListener() {
+
+        return sessionListener;
+    }
+
+    @Override
+    public ExecutorService workerThreadPool() {
+
+        return workerPool;
     }
 
     private class ClientThread implements Runnable {
@@ -136,34 +165,25 @@ public class ClientImpl implements Client {
 
                         keyIterator.remove();
 
-                        SelectableChannel selectableChannel = key.channel();
-
                         if(!key.isValid())
                             continue;
 
                         if(key.isConnectable()) {
                             socketChannel.finishConnect();
 
-                            SelectionKey tcpRead = socketChannel.register(selector, SelectionKey.OP_READ);
+                            session = new SessionImpl(idCounter.getAndIncrement(), ClientImpl.this, selector, socketChannel, protocol);
 
-                            session = new SessionImpl(ID_COUNTER.getAndIncrement(), socketChannel, protocol);
-                            tcpRead.attach(session);
+                            if(sessionListener != null)
+                                sessionListener.onConnected(session);
 
                             connectLatch.countDown();
                         }
 
-                        if(key.isValid() && key.isReadable()) {
-                            SessionImpl session = (SessionImpl) key.attachment();
+                        SessionImpl session = (SessionImpl) key.attachment();
+                        if(session == null)
+                            continue;
 
-                            if(session == null)
-                                continue;
-
-                            if(selectableChannel instanceof DatagramChannel) {
-                                session.readDatagram();
-                            }else {
-                                session.readSocket();
-                            }
-                        }
+                        session.run();
                     }
                 } catch (Exception e) {
                     break;
