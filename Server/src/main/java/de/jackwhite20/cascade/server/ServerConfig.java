@@ -19,6 +19,9 @@
 
 package de.jackwhite20.cascade.server;
 
+import de.jackwhite20.cascade.shared.protocol.Protocol;
+import de.jackwhite20.cascade.shared.session.SessionListener;
+
 import java.net.InetSocketAddress;
 
 /**
@@ -32,7 +35,11 @@ public abstract class ServerConfig {
 
     private int backlog;
 
-    private int selectorCount;
+    private int workerThreads;
+
+    private Protocol protocol;
+
+    private SessionListener sessionListener;
 
     public String host() {
 
@@ -49,9 +56,9 @@ public abstract class ServerConfig {
         return backlog;
     }
 
-    public int selectorCount() {
+    public int workerThreads() {
 
-        return selectorCount;
+        return workerThreads;
     }
 
     public void host(String host) {
@@ -69,9 +76,9 @@ public abstract class ServerConfig {
         this.backlog = backlog;
     }
 
-    public void selectorCount(int selectorCount) {
+    public void workerThreads(int workerThreads) {
 
-        this.selectorCount = selectorCount;
+        this.workerThreads = workerThreads;
     }
 
     public void address(InetSocketAddress inetSocketAddress) {
@@ -83,5 +90,25 @@ public abstract class ServerConfig {
     public InetSocketAddress address() {
 
         return new InetSocketAddress(host, port);
+    }
+
+    public Protocol protocol() {
+
+        return protocol;
+    }
+
+    public void protocol(Protocol protocol) {
+
+        this.protocol = protocol;
+    }
+
+    public SessionListener sessionListener() {
+
+        return sessionListener;
+    }
+
+    public void sessionListener(SessionListener sessionListener) {
+
+        this.sessionListener = sessionListener;
     }
 }
