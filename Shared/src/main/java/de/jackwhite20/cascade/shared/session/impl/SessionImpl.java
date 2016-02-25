@@ -39,6 +39,7 @@ import java.nio.channels.SocketChannel;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * Created by JackWhite20 on 24.02.2016.
@@ -66,6 +67,8 @@ public class SessionImpl implements Session, Runnable {
     private SocketAddress remoteAddress;
 
     private ConcurrentHashMap<Integer, PacketCallback> callbackPackets = new ConcurrentHashMap<>();
+
+    private ReentrantReadWriteLock processLock = new ReentrantReadWriteLock();
 
     public SessionImpl(int id, Reactor reactor, Selector selector, SocketChannel socketChannel, Protocol protocol) throws IOException {
 
@@ -135,6 +138,7 @@ public class SessionImpl implements Session, Runnable {
     @SuppressWarnings("all")
     private void process(byte[] bytes) {
 
+        processLock.readLock().lock();
         try {
             PacketReader packetReader = new PacketReader(bytes);
             byte packetId = packetReader.readByte();
@@ -152,6 +156,8 @@ public class SessionImpl implements Session, Runnable {
         } catch (Exception e) {
             e.printStackTrace();
             close();
+        } finally {
+            processLock.readLock().unlock();
         }
     }
 
@@ -203,6 +209,7 @@ public class SessionImpl implements Session, Runnable {
             sendBuffer.putInt(buffer.length);
             sendBuffer.put(buffer);
             sendBuffer.flip();
+
 
             // Add to send queue for later processing
             sendQueue.offer(sendBuffer);
