@@ -17,10 +17,6 @@ Cascade is in an stable state and tested.
 - protocol system
 - callback system
 
-## Important
-Packet id -128 is used for internal UDP port handling, so it is better to not use this id. Maybe some other negative ids will be used for internal stuff such as cryptography in the future. 
-It is preferably to use the ids between 0 and 127 first.
-
 ## Installation
 
 - Install [Maven 3](http://maven.apache.org/download.cgi)
