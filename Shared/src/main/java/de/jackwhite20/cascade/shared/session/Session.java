@@ -24,6 +24,7 @@ import de.jackwhite20.cascade.shared.protocol.Protocol;
 import de.jackwhite20.cascade.shared.protocol.packet.Packet;
 import de.jackwhite20.cascade.shared.protocol.packet.RequestPacket;
 import de.jackwhite20.cascade.shared.protocol.packet.ResponsePacket;
+import de.jackwhite20.cascade.shared.session.impl.ProtocolType;
 
 import java.net.SocketAddress;
 import java.nio.channels.SocketChannel;
@@ -44,6 +45,14 @@ public interface Session {
      * @param packet the packet.
      */
     void send(Packet packet);
+
+    /**
+     * Sends a packet over the given protocol type.
+     *
+     * @param packet the packet.
+     * @param protocolType the protocol type.
+     */
+    void send(Packet packet, ProtocolType protocolType);
 
     /**
      * Sends a packet over TCP (ProtocolType.TCP) and executes the packet callback when the response packet gets received.

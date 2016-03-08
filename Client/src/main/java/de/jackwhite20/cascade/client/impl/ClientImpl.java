@@ -23,9 +23,9 @@ import de.jackwhite20.cascade.client.Client;
 import de.jackwhite20.cascade.client.ClientConfig;
 import de.jackwhite20.cascade.shared.protocol.Protocol;
 import de.jackwhite20.cascade.shared.protocol.packet.Packet;
-import de.jackwhite20.cascade.shared.server.Reactor;
 import de.jackwhite20.cascade.shared.session.Session;
 import de.jackwhite20.cascade.shared.session.SessionListener;
+import de.jackwhite20.cascade.shared.session.impl.ProtocolType;
 import de.jackwhite20.cascade.shared.session.impl.SessionImpl;
 
 import java.io.IOException;
@@ -34,14 +34,12 @@ import java.nio.channels.*;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by JackWhite20 on 19.02.2016.
  */
-public class ClientImpl implements Client, Reactor {
+public class ClientImpl implements Client {
 
     private AtomicInteger idCounter = new AtomicInteger(0);
 
@@ -52,8 +50,6 @@ public class ClientImpl implements Client, Reactor {
     private Selector selector;
 
     private SocketChannel socketChannel;
-
-    private ExecutorService workerPool;
 
     private Session session;
 
@@ -73,8 +69,6 @@ public class ClientImpl implements Client, Reactor {
     public void connect() {
 
         try {
-            workerPool = Executors.newFixedThreadPool(clientConfig.workerThreads() + 1);
-
             selector = Selector.open();
             socketChannel = SocketChannel.open();
             socketChannel.configureBlocking(false);
@@ -82,9 +76,7 @@ public class ClientImpl implements Client, Reactor {
             socketChannel.connect(new InetSocketAddress(clientConfig.host(), clientConfig.port()));
             socketChannel.register(selector, SelectionKey.OP_CONNECT);
 
-            running = true;
-
-            workerPool.execute(new ClientThread());
+            new Thread(new ClientThread()).start();
 
             connectLatch.await();
         } catch (Exception e) {
@@ -112,8 +104,6 @@ public class ClientImpl implements Client, Reactor {
                 e.printStackTrace();
             }
         }
-
-        workerPool.shutdown();
     }
 
     @Override
@@ -123,9 +113,15 @@ public class ClientImpl implements Client, Reactor {
     }
 
     @Override
+    public void send(Packet packet, ProtocolType protocolType) {
+
+        session.send(packet, protocolType);
+    }
+
+    @Override
     public void send(Packet packet) {
 
-        session.send(packet);
+        send(packet, ProtocolType.TCP);
     }
 
     @Override
@@ -134,22 +130,12 @@ public class ClientImpl implements Client, Reactor {
         this.sessionListener = sessionListener;
     }
 
-    @Override
-    public SessionListener sessionListener() {
-
-        return sessionListener;
-    }
-
-    @Override
-    public ExecutorService workerThreadPool() {
-
-        return workerPool;
-    }
-
     private class ClientThread implements Runnable {
 
         @Override
         public void run() {
+
+            running = true;
 
             while (running) {
                 try {
@@ -171,7 +157,10 @@ public class ClientImpl implements Client, Reactor {
                         if(key.isConnectable()) {
                             socketChannel.finishConnect();
 
-                            session = new SessionImpl(idCounter.getAndIncrement(), ClientImpl.this, selector, socketChannel, protocol);
+
+                            session = new SessionImpl(idCounter.getAndIncrement(), socketChannel, protocol, sessionListener);
+
+                            socketChannel.register(selector, SelectionKey.OP_READ).attach(session);
 
                             if(sessionListener != null)
                                 sessionListener.onConnected(session);
@@ -179,11 +168,21 @@ public class ClientImpl implements Client, Reactor {
                             connectLatch.countDown();
                         }
 
-                        SessionImpl session = (SessionImpl) key.attachment();
-                        if(session == null)
-                            continue;
+                        if(key.isValid() && key.isReadable()) {
+                            SessionImpl session = (SessionImpl) key.attachment();
 
-                        session.run();
+                            if(session == null) {
+                                continue;
+                            }
+
+                            SelectableChannel selectableChannel = key.channel();
+                            
+                            if(selectableChannel instanceof DatagramChannel) {
+                                // TODO: 08.03.2016
+                            }else {
+                                session.readSocket();
+                            }
+                        }
                     }
                 } catch (Exception e) {
                     break;

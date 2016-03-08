@@ -17,18 +17,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.jackwhite20.cascade.shared.server;
-
-import de.jackwhite20.cascade.shared.session.SessionListener;
-
-import java.util.concurrent.ExecutorService;
+package de.jackwhite20.cascade.shared.session.impl;
 
 /**
- * Created by JackWhite20 on 24.02.2016.
+ * Created by JackWhite20 on 06.11.2015.
  */
-public interface Reactor {
+public enum ProtocolType {
 
-    SessionListener sessionListener();
-
-    ExecutorService workerThreadPool();
+    TCP,
+    UDP
 }

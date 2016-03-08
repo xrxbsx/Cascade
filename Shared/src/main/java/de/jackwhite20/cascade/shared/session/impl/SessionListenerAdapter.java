@@ -17,7 +17,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.jackwhite20.cascade.shared.session;
+package de.jackwhite20.cascade.shared.session.impl;
+
+import de.jackwhite20.cascade.shared.session.Session;
+import de.jackwhite20.cascade.shared.session.SessionListener;
 
 /**
  * Created by JackWhite20 on 13.10.2015.

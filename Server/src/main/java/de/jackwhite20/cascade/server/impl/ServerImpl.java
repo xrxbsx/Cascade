@@ -20,28 +20,29 @@
 package de.jackwhite20.cascade.server.impl;
 
 import de.jackwhite20.cascade.server.Server;
-import de.jackwhite20.cascade.server.ServerConfig;
-import de.jackwhite20.cascade.shared.server.Reactor;
-import de.jackwhite20.cascade.shared.session.Session;
+import de.jackwhite20.cascade.server.selector.SelectorThread;
 import de.jackwhite20.cascade.shared.session.SessionListener;
 import de.jackwhite20.cascade.shared.session.impl.SessionImpl;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.StandardSocketOptions;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Created by JackWhite20 on 19.02.2016.
  */
-public class ServerImpl implements Server, Reactor, Runnable {
+public class ServerImpl implements Server, Runnable {
 
     private boolean running;
 
@@ -57,14 +58,33 @@ public class ServerImpl implements Server, Reactor, Runnable {
 
     private ExecutorService workerPool;
 
+    private ReentrantLock selectorLock = new ReentrantLock();
+
+    private List<SelectorThread> selectorThreads = new ArrayList<>();
+
+    private AtomicInteger selectorCounter = new AtomicInteger(0);
+
     public ServerImpl(ServerConfig serverConfig) {
 
         this.serverConfig = serverConfig;
+        this.sessionListener = serverConfig.sessionListener();
     }
 
     private int nextId() {
 
         return idCounter.getAndIncrement();
+    }
+
+    private SelectorThread nextSelector() {
+
+        int next = selectorCounter.getAndIncrement();
+
+        if(next >= selectorThreads.size()) {
+            selectorCounter.set(0);
+            next = 0;
+        }
+
+        return selectorThreads.get(next);
     }
 
     @Override
@@ -77,13 +97,16 @@ public class ServerImpl implements Server, Reactor, Runnable {
             serverSocketChannel = ServerSocketChannel.open();
             serverSocketChannel.socket().bind(new InetSocketAddress(serverConfig.host(), serverConfig.port()), serverConfig.backlog());
             serverSocketChannel.configureBlocking(false);
-
-            running = true;
-
-            SelectionKey selectionKey = serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
-            selectionKey.attach(new Acceptor());
+            serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
 
             workerPool.execute(this);
+
+            for (int i = 1; i <= serverConfig.workerThreads(); i++) {
+                SelectorThread selectorThread = new SelectorThread(i, selectorLock);
+                selectorThreads.add(selectorThread);
+
+                workerPool.execute(selectorThread);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -92,25 +115,66 @@ public class ServerImpl implements Server, Reactor, Runnable {
     @Override
     public void run() {
 
-        try {
-            while (running) {
-                int count = selector.select();
-                if (count == 0)
+        running = true;
+
+        while (running) {
+            try {
+                if (selector.select() == 0) {
                     continue;
+                }
 
-                Iterator<SelectionKey> it = selector.selectedKeys().iterator();
+                Set<SelectionKey> keys = selector.selectedKeys();
+                Iterator<SelectionKey> keyIterator = keys.iterator();
 
-                while (it.hasNext()) {
-                    SelectionKey sk = it.next();
-                    it.remove();
-                    Runnable r = (Runnable) sk.attachment();
-                    if (r != null) {
-                        r.run();
+                while (keyIterator.hasNext()) {
+                    SelectionKey key = keyIterator.next();
+
+                    keyIterator.remove();
+
+                    if(!key.isValid())
+                        continue;
+
+                    if(key.isAcceptable()) {
+                        SocketChannel socketChannel = serverSocketChannel.accept();
+
+                        if(socketChannel == null)
+                            continue;
+
+                        socketChannel.configureBlocking(false);
+
+                        SelectorThread selectorThread = nextSelector();
+                        Selector nextSelector = selectorThread.selector();
+
+                        selectorLock.lock();
+
+                        // Important
+                        nextSelector.wakeup();
+
+                        try {
+                            SelectionKey tcpKey = socketChannel.register(nextSelector, SelectionKey.OP_READ);
+
+                            int clientId = nextId();
+
+                            SessionImpl session = new SessionImpl(clientId, socketChannel, serverConfig.protocol(), sessionListener);
+                            tcpKey.attach(session);
+
+                            if(sessionListener != null) {
+                                sessionListener.onConnected(session);
+                            }
+                        } catch (Exception e) {
+                            socketChannel.close();
+                            e.printStackTrace();
+                        } finally {
+                            selectorLock.unlock();
+                        }
                     }
                 }
+
+                keys.clear();
+            } catch (Exception e) {
+                e.printStackTrace();
+                break;
             }
-        } catch (IOException ex) {
-            ex.printStackTrace();
         }
     }
 
@@ -144,38 +208,5 @@ public class ServerImpl implements Server, Reactor, Runnable {
     public boolean running() {
 
         return running;
-    }
-
-    @Override
-    public SessionListener sessionListener() {
-
-        return sessionListener;
-    }
-
-    @Override
-    public ExecutorService workerThreadPool() {
-
-        return workerPool;
-    }
-
-    private class Acceptor implements Runnable {
-
-        public void run() {
-
-            try {
-                SocketChannel socketChannel = serverSocketChannel.accept();
-                if (socketChannel != null) {
-                    socketChannel.setOption(StandardSocketOptions.TCP_NODELAY, true);
-
-                    Session session = new SessionImpl(nextId(), ServerImpl.this, selector, socketChannel, serverConfig.protocol());
-
-                    if(sessionListener != null) {
-                        sessionListener.onConnected(session);
-                    }
-                }
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            }
-        }
     }
 }
