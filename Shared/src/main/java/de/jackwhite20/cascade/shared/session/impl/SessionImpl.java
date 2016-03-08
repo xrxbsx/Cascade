@@ -26,39 +26,29 @@ import de.jackwhite20.cascade.shared.protocol.io.PacketWriter;
 import de.jackwhite20.cascade.shared.protocol.packet.Packet;
 import de.jackwhite20.cascade.shared.protocol.packet.RequestPacket;
 import de.jackwhite20.cascade.shared.protocol.packet.ResponsePacket;
-import de.jackwhite20.cascade.shared.server.Reactor;
 import de.jackwhite20.cascade.shared.session.Session;
 import de.jackwhite20.cascade.shared.session.SessionListener;
 
 import java.io.IOException;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
-import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * Created by JackWhite20 on 24.02.2016.
  */
-public class SessionImpl implements Session, Runnable {
+public class SessionImpl implements Session {
 
     private static final int READ_BUF_SIZE = 2048;
 
-    private int id;
+    private static final int BUFFER_GROW_FACTOR = 2;
 
-    private Reactor reactor;
+    private int id;
 
     private SocketChannel socketChannel;
 
-    private SelectionKey selectionKey;
-
-    private ByteBuffer readBuf = ByteBuffer.allocate(READ_BUF_SIZE);
-
-    private Queue<ByteBuffer> sendQueue = new ConcurrentLinkedQueue<>();
+    private ByteBuffer tcpBuffer = ByteBuffer.allocate(READ_BUF_SIZE);
 
     private boolean disconnected = false;
 
@@ -68,111 +58,89 @@ public class SessionImpl implements Session, Runnable {
 
     private ConcurrentHashMap<Integer, PacketCallback> callbackPackets = new ConcurrentHashMap<>();
 
-    private ReentrantReadWriteLock processLock = new ReentrantReadWriteLock();
+    private SessionListener sessionListener;
 
-    public SessionImpl(int id, Reactor reactor, Selector selector, SocketChannel socketChannel, Protocol protocol) throws IOException {
+    public SessionImpl(int id, SocketChannel socketChannel, Protocol protocol, SessionListener sessionListener) throws IOException {
 
         this.id = id;
-        this.reactor = reactor;
         this.socketChannel = socketChannel;
         this.socketChannel.configureBlocking(false);
         this.remoteAddress = this.socketChannel.getRemoteAddress();
         this.protocol = protocol;
-
-        // Register for read events
-        selectionKey = socketChannel.register(selector, SelectionKey.OP_READ);
-        // Attach the this session object
-        selectionKey.attach(this);
-
-        // Wakeup if it is in the blocking select call
-        selector.wakeup();
-    }
-
-    private void write() throws IOException {
-
-        while (sendQueue.size() > 0) {
-            socketChannel.write(sendQueue.poll());
-        }
-
-        selectionKey.interestOps(SelectionKey.OP_READ);
-        selectionKey.selector().wakeup();
-    }
-
-    private void read() throws IOException {
-
-        try {
-            int numBytes = socketChannel.read(readBuf);
-
-            if (numBytes == -1) {
-                close();
-            } else {
-                readBuf.limit(readBuf.capacity());
-
-                readBuf.flip();
-
-                while (readBuf.remaining() > 0) {
-                    readBuf.mark();
-
-                    if (readBuf.remaining() < 4)
-                        break;
-
-                    int readableBytes = readBuf.getInt();
-                    if (readBuf.remaining() < readableBytes) {
-                        readBuf.reset();
-                        break;
-                    }
-
-                    byte[] bytes = new byte[readableBytes];
-                    readBuf.get(bytes);
-
-                    reactor.workerThreadPool().execute(() -> process(bytes));
-                }
-
-                readBuf.compact();
-            }
-        } catch (IOException ex) {
-            close();
-        }
+        this.sessionListener = sessionListener;
     }
 
     @SuppressWarnings("all")
-    private void process(byte[] bytes) {
+    public void readSocket() {
 
-        processLock.readLock().lock();
+        int read;
+
+        tcpBuffer.limit(tcpBuffer.capacity());
+
         try {
-            PacketReader packetReader = new PacketReader(bytes);
-            byte packetId = packetReader.readByte();
+            read = socketChannel.read(tcpBuffer);
+            if (tcpBuffer.remaining() == 0) {
+                ByteBuffer temp = ByteBuffer.allocate(tcpBuffer.capacity() * BUFFER_GROW_FACTOR);
+                tcpBuffer.flip();
+                temp.put(tcpBuffer);
+                tcpBuffer = temp;
 
-            Packet packet = protocol.create(packetId);
-            packet.read(packetReader);
+                int position = tcpBuffer.position();
+                tcpBuffer.flip();
+                // Reset to last position (the position from the half read packet) after flip
+                tcpBuffer.position(position);
 
-            if (!(packet instanceof ResponsePacket)) {
-                protocol.call(packet.getClass(), this, packet);
-            }else {
-                ResponsePacket callbackPacket = ((ResponsePacket) packet);
-                if(callbackPackets.containsKey(callbackPacket.callbackId()))
-                    callbackPackets.get(callbackPacket.callbackId()).receive(callbackPacket);
+                // Read again to read the left packet
+                readSocket();
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (IOException e) {
+            read = -1;
+        }
+
+        if (read == -1) {
             close();
-        } finally {
-            processLock.readLock().unlock();
+
+            return;
         }
-    }
 
-    @Override
-    public void run() {
+        tcpBuffer.flip();
 
-        try {
-            if (selectionKey.isReadable()) {
-                read();
-            } else if (selectionKey.isWritable()) {
-                write();
+        while (tcpBuffer.remaining() > 0) {
+            tcpBuffer.mark();
+
+            if (tcpBuffer.remaining() < 4)
+                break;
+
+            int readableBytes = tcpBuffer.getInt();
+            if (tcpBuffer.remaining() < readableBytes) {
+                tcpBuffer.reset();
+                break;
             }
-        } catch (IOException ex) {
-            ex.printStackTrace();
+
+            byte[] bytes = new byte[readableBytes];
+            tcpBuffer.get(bytes);
+
+            try {
+                PacketReader packetReader = new PacketReader(bytes);
+                byte packetId = packetReader.readByte();
+
+                Packet packet = protocol.create(packetId);
+                packet.read(packetReader);
+
+                if (!(packet instanceof ResponsePacket)) {
+                    protocol.call(packet.getClass(), this, packet, ProtocolType.TCP);
+                }else {
+                    ResponsePacket callbackPacket = ((ResponsePacket) packet);
+                    if(callbackPackets.containsKey(callbackPacket.callbackId()))
+                        callbackPackets.get(callbackPacket.callbackId()).receive(callbackPacket);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                close();
+            }
         }
+
+        tcpBuffer.compact();
     }
 
     @Override
@@ -181,25 +149,25 @@ public class SessionImpl implements Session, Runnable {
         if(disconnected)
             return;
 
-        selectionKey.cancel();
         try {
             socketChannel.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        SessionListener sessionListener = reactor.sessionListener();
-        if(sessionListener != null)
-            sessionListener.onDisconnected(this);
-
         disconnected = true;
+
+        if(sessionListener != null) {
+            sessionListener.onDisconnected(this);
+        }
     }
 
     @Override
-    public void send(Packet packet) {
+    public void send(Packet packet, ProtocolType protocolType) {
+
+        PacketWriter packetWriter = new PacketWriter();
 
         try {
-            PacketWriter packetWriter = new PacketWriter();
             packetWriter.writeByte(protocol.findId(packet.getClass()));
             packet.write(packetWriter);
 
@@ -210,17 +178,11 @@ public class SessionImpl implements Session, Runnable {
             sendBuffer.put(buffer);
             sendBuffer.flip();
 
-
-            // Add to send queue for later processing
-            sendQueue.offer(sendBuffer);
-
-            // Set the key's interest to WRITE operation if not already there
-            if ((selectionKey.interestOps() & SelectionKey.OP_WRITE) == 0) {
-                selectionKey.interestOps(selectionKey.interestOps() | SelectionKey.OP_WRITE);
+            if(protocolType == ProtocolType.UDP) {
+                // TODO: 08.03.2016
+            } else {
+                socketChannel.write(sendBuffer);
             }
-
-            // Wakeup if it is in the blocking select call
-            selectionKey.selector().wakeup();
         } catch (Exception e) {
             close();
 
@@ -229,11 +191,17 @@ public class SessionImpl implements Session, Runnable {
     }
 
     @Override
+    public void send(Packet packet) {
+
+        send(packet, ProtocolType.TCP);
+    }
+
+    @Override
     public <T extends ResponsePacket> void send(RequestPacket packet, PacketCallback<T> packetCallback) {
 
         callbackPackets.put(packet.callbackId(), packetCallback);
 
-        send(packet);
+        send(packet, ProtocolType.TCP);
     }
 
     @Override

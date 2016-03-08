@@ -25,6 +25,7 @@ import de.jackwhite20.cascade.shared.protocol.listener.PacketListener;
 import de.jackwhite20.cascade.shared.protocol.packet.Packet;
 import de.jackwhite20.cascade.shared.protocol.packet.PacketInfo;
 import de.jackwhite20.cascade.shared.session.Session;
+import de.jackwhite20.cascade.shared.session.impl.ProtocolType;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -98,7 +99,7 @@ public class Protocol {
             throw new IllegalArgumentException("packetListener cannot be null");
 
         for (Method method : packetListener.getClass().getDeclaredMethods()) {
-            if(method.getParameterCount() != 2)
+            if(method.getParameterCount() != 3)
                 continue;
 
             if(!method.isAnnotationPresent(PacketHandler.class))
@@ -150,7 +151,7 @@ public class Protocol {
      * @param session the session.
      * @param packet the packet instance.
      */
-    public void call(Class<? extends Packet> clazz, Session session, Packet packet) {
+    public void call(Class<? extends Packet> clazz, Session session, Packet packet, ProtocolType protocolType) {
 
         if(clazz == null)
             throw new IllegalArgumentException("clazz cannot be null");
@@ -163,7 +164,7 @@ public class Protocol {
 
         Listeners l = listeners.get(clazz);
         if(l != null) {
-            l.call(session, packet);
+            l.call(session, packet, protocolType);
         } else {
             throw new IllegalStateException("no listener for packet " + clazz.getName());
         }

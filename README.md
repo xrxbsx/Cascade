@@ -11,7 +11,7 @@ Cascade is in an stable state and tested.
 - fast setup
 - lightweight
 - simple API design
-- powerful NIO implementation with the reactor pattern
+- powerful NIO implementation
 - TCP support (UDP will follow)
 - packets
 - protocol system

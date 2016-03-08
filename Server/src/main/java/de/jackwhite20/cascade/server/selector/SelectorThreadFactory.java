@@ -17,20 +17,21 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.jackwhite20.cascade.server.test;
+package de.jackwhite20.cascade.server.selector;
 
-import de.jackwhite20.cascade.server.impl.ServerConfig;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Created by JackWhite20 on 19.02.2016.
+ * Created by JackWhite20 on 26.07.2015.
  */
-public class TestServerConfig extends ServerConfig {
+public class SelectorThreadFactory implements ThreadFactory {
 
-    public TestServerConfig() {
+    private AtomicInteger id = new AtomicInteger(1);
 
-        host("0.0.0.0");
-        port(1337);
-        backlog(100);
-        workerThreads(2);
+    @Override
+    public Thread newThread(Runnable r) {
+
+        return new Thread(r, "Selector-" + id.getAndIncrement());
     }
 }

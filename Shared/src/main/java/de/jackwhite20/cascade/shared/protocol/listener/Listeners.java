@@ -21,6 +21,7 @@ package de.jackwhite20.cascade.shared.protocol.listener;
 
 import de.jackwhite20.cascade.shared.protocol.packet.Packet;
 import de.jackwhite20.cascade.shared.session.Session;
+import de.jackwhite20.cascade.shared.session.impl.ProtocolType;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -49,11 +50,11 @@ public class Listeners {
         listeners.remove(packetListener);
     }
 
-    public void call(Session session, Packet packet) {
+    public void call(Session session, Packet packet, ProtocolType protocolType) {
 
         listeners.forEach((l, m) -> m.forEach(method -> {
             try {
-                method.invoke(l, session, packet);
+                method.invoke(l, session, packet, protocolType);
             } catch (Exception e) {
                 e.printStackTrace();
             }

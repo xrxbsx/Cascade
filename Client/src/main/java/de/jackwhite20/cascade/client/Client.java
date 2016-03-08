@@ -21,6 +21,7 @@ package de.jackwhite20.cascade.client;
 
 import de.jackwhite20.cascade.shared.protocol.packet.Packet;
 import de.jackwhite20.cascade.shared.session.SessionListener;
+import de.jackwhite20.cascade.shared.session.impl.ProtocolType;
 
 /**
  * Created by JackWhite20 on 19.02.2016.
@@ -54,9 +55,17 @@ public interface Client {
     boolean running();
 
     /**
-     * Sends a packet over TCP.
+     * Sends a packet over TCP (ProtocolType.TCP).
      *
      * @param packet the packet.
      */
     void send(Packet packet);
+
+    /**
+     * Sends a packet over the given protocol type.
+     *
+     * @param packet the packet.
+     * @param protocolType the protocol type.
+     */
+    void send(Packet packet, ProtocolType protocolType);
 }
