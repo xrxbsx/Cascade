@@ -25,6 +25,7 @@ import de.jackwhite20.cascade.shared.protocol.Protocol;
 import de.jackwhite20.cascade.shared.protocol.packet.Packet;
 import de.jackwhite20.cascade.shared.session.Session;
 import de.jackwhite20.cascade.shared.session.SessionListener;
+import de.jackwhite20.cascade.shared.session.impl.Disconnectable;
 import de.jackwhite20.cascade.shared.session.impl.ProtocolType;
 import de.jackwhite20.cascade.shared.session.impl.SessionImpl;
 
@@ -39,7 +40,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Created by JackWhite20 on 19.02.2016.
  */
-public class ClientImpl implements Client {
+public class ClientImpl implements Client, Disconnectable {
 
     private AtomicInteger idCounter = new AtomicInteger(0);
 
@@ -68,11 +69,16 @@ public class ClientImpl implements Client {
     @Override
     public void connect() {
 
+        if(running) {
+            throw new IllegalStateException("client is already connected");
+        }
+
         try {
             selector = Selector.open();
+
+            // Setup the socket channel and connect
             socketChannel = SocketChannel.open();
             socketChannel.configureBlocking(false);
-
             socketChannel.connect(new InetSocketAddress(clientConfig.host(), clientConfig.port()));
             socketChannel.register(selector, SelectionKey.OP_CONNECT);
 
@@ -162,12 +168,15 @@ public class ClientImpl implements Client {
                         if(key.isConnectable()) {
                             socketChannel.finishConnect();
 
-                            session = new SessionImpl(idCounter.getAndIncrement(), socketChannel, protocol, sessionListener);
+                            // Create the session object
+                            session = new SessionImpl(idCounter.getAndIncrement(), socketChannel, protocol, sessionListener, ClientImpl.this);
 
+                            // Register the read operation and attach the session object
                             socketChannel.register(selector, SelectionKey.OP_READ).attach(session);
 
-                            if(sessionListener != null)
+                            if(sessionListener != null) {
                                 sessionListener.onConnected(session);
+                            }
 
                             connectLatch.countDown();
                         }
@@ -192,6 +201,9 @@ public class ClientImpl implements Client {
                     break;
                 }
             }
+
+            // Some serious error, so disconnect if possible
+            disconnect();
         }
     }
 }
