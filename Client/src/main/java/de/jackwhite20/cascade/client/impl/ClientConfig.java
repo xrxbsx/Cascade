@@ -19,13 +19,14 @@
 
 package de.jackwhite20.cascade.client.impl;
 
+import de.jackwhite20.cascade.shared.Config;
 import de.jackwhite20.cascade.shared.protocol.Protocol;
 import de.jackwhite20.cascade.shared.session.SessionListener;
 
 /**
  * Created by JackWhite20 on 19.02.2016.
  */
-public abstract class ClientConfig {
+public abstract class ClientConfig extends Config {
 
     private String host;
 

@@ -20,6 +20,7 @@
 package de.jackwhite20.cascade.client.impl;
 
 import de.jackwhite20.cascade.client.Client;
+import de.jackwhite20.cascade.shared.Config;
 import de.jackwhite20.cascade.shared.protocol.Protocol;
 import de.jackwhite20.cascade.shared.protocol.packet.Packet;
 import de.jackwhite20.cascade.shared.session.Session;
@@ -74,6 +75,11 @@ public class ClientImpl implements Client {
 
             socketChannel.connect(new InetSocketAddress(clientConfig.host(), clientConfig.port()));
             socketChannel.register(selector, SelectionKey.OP_CONNECT);
+
+            for (Config.Option option : clientConfig.options()) {
+                //noinspection unchecked
+                socketChannel.setOption(option.socketOption(), option.value());
+            }
 
             new Thread(new ClientThread()).start();
 
@@ -155,7 +161,6 @@ public class ClientImpl implements Client {
 
                         if(key.isConnectable()) {
                             socketChannel.finishConnect();
-
 
                             session = new SessionImpl(idCounter.getAndIncrement(), socketChannel, protocol, sessionListener);
 

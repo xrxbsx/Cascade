@@ -21,6 +21,7 @@ package de.jackwhite20.cascade.server.impl;
 
 import de.jackwhite20.cascade.server.Server;
 import de.jackwhite20.cascade.server.selector.SelectorThread;
+import de.jackwhite20.cascade.shared.Config;
 import de.jackwhite20.cascade.shared.session.SessionListener;
 import de.jackwhite20.cascade.shared.session.impl.SessionImpl;
 
@@ -141,6 +142,11 @@ public class ServerImpl implements Server, Runnable {
                             continue;
 
                         socketChannel.configureBlocking(false);
+
+                        for (Config.Option option : serverConfig.options()) {
+                            //noinspection unchecked
+                            socketChannel.setOption(option.socketOption(), option.value());
+                        }
 
                         SelectorThread selectorThread = nextSelector();
                         Selector nextSelector = selectorThread.selector();
