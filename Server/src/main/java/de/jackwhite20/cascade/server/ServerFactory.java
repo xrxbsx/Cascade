@@ -21,6 +21,11 @@ package de.jackwhite20.cascade.server;
 
 import de.jackwhite20.cascade.server.impl.ServerConfig;
 import de.jackwhite20.cascade.server.impl.ServerImpl;
+import de.jackwhite20.cascade.shared.Config;
+import de.jackwhite20.cascade.shared.protocol.Protocol;
+import de.jackwhite20.cascade.shared.session.SessionListener;
+
+import java.util.List;
 
 /**
  * Created by JackWhite20 on 19.02.2016.
@@ -30,5 +35,42 @@ public class ServerFactory {
     public static Server create(ServerConfig serverConfig) {
 
         return new ServerImpl(serverConfig);
+    }
+
+    public static Server create(String host, int port, int backlog, int workerThreads, Protocol protocol, List<Config.Option> options, SessionListener sessionListener) {
+
+        return create(new DefaultServerConfig(host, port, backlog, workerThreads, protocol, options, sessionListener));
+    }
+
+    public static Server create(String host, int port, int backlog, int workerThreads, Protocol protocol, SessionListener sessionListener) {
+
+        return create(new DefaultServerConfig(host, port, backlog, workerThreads, protocol, sessionListener));
+    }
+
+    public static Server create(String host, int port, int backlog, int workerThreads, Protocol protocol) {
+
+        return create(host, port, backlog, workerThreads, protocol, null);
+    }
+
+    private static class DefaultServerConfig extends ServerConfig {
+
+        public DefaultServerConfig(String host, int port, int backlog, int workerThreads, Protocol protocol, List<Config.Option> options, SessionListener sessionListener) {
+
+            host(host);
+            port(port);
+            backlog(backlog);
+            workerThreads(workerThreads);
+            protocol(protocol);
+            if(options != null) {
+                //noinspection unchecked
+                options.forEach(option -> option(option.socketOption(), option.value()));
+            }
+            sessionListener(sessionListener);
+        }
+
+        public DefaultServerConfig(String host, int port, int backlog, int workerThreads, Protocol protocol, SessionListener sessionListener) {
+
+            this(host, port, backlog, workerThreads, protocol, null, sessionListener);
+        }
     }
 }
