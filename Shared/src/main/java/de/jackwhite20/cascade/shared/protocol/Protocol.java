@@ -27,15 +27,26 @@ import de.jackwhite20.cascade.shared.protocol.packet.PacketInfo;
 import de.jackwhite20.cascade.shared.session.Session;
 import de.jackwhite20.cascade.shared.session.impl.ProtocolType;
 
+import java.io.File;
 import java.lang.reflect.Method;
+import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * Created by JackWhite20 on 02.01.2016.
  */
 public class Protocol {
 
+    private static final char PKG_SEPARATOR = '.';
+
+    private static final char DIR_SEPARATOR = '/';
+
+    private static final String CLASS_FILE_SUFFIX = ".class";
+
     private HashMap<Byte, Class<? extends Packet>> packets = new HashMap<>();
+
     private HashMap<Class<? extends Packet>, Byte> packetByteMap = new HashMap<>();
 
     private HashMap<Class<?>, Listeners> listeners = new HashMap<>();
@@ -48,8 +59,9 @@ public class Protocol {
      */
     public void registerPacket(Class<? extends Packet> clazz) {
 
-        if(clazz == null)
+        if(clazz == null) {
             throw new IllegalArgumentException("clazz cannot be null");
+        }
 
         PacketInfo packetInfo = clazz.getAnnotation(PacketInfo.class);
         if(packetInfo == null)
@@ -62,6 +74,19 @@ public class Protocol {
 
         packets.put(id, clazz);
         packetByteMap.put(clazz, id);
+    }
+
+    /**
+     * Registers all packet classes in the given package and sub package.
+     *
+     * @param packageName the package name to start with.
+     */
+    public void registerPackets(String packageName) {
+
+        for (Class<?> aClass : scanPackage(packageName)) {
+            //noinspection unchecked
+            registerPacket(((Class<? extends Packet>) aClass));
+        }
     }
 
     /**
@@ -202,5 +227,56 @@ public class Protocol {
         }
 
         return null;
+    }
+
+    private List<Class<?>> scanPackage(String packageName) {
+
+        String scannedPath = packageName.replace(PKG_SEPARATOR, DIR_SEPARATOR);
+        URL url = Thread.currentThread().getContextClassLoader().getResource(scannedPath);
+        if (url == null) {
+            throw new IllegalArgumentException("package " + packageName + " does not exist");
+        }
+
+        File scannedDir = new File(url.getFile());
+        List<Class<?>> classes = new ArrayList<>();
+
+        File[] files = scannedDir.listFiles();
+        if (files == null) {
+            throw new IllegalStateException();
+        }
+
+        for (File file : files) {
+            classes.addAll(scanSubPackages(file, packageName));
+        }
+
+        return classes;
+    }
+
+    private List<Class<?>> scanSubPackages(File file, String scannedPackage) {
+
+        List<Class<?>> classes = new ArrayList<>();
+        String resource = scannedPackage + PKG_SEPARATOR + file.getName();
+        if (file.isDirectory()) {
+            File[] files = file.listFiles();
+            if (files == null) {
+                throw new IllegalStateException();
+            }
+
+            for (File child : files) {
+                classes.addAll(scanSubPackages(child, resource));
+            }
+        } else if (resource.endsWith(CLASS_FILE_SUFFIX)) {
+            int endIndex = resource.length() - CLASS_FILE_SUFFIX.length();
+            String className = resource.substring(0, endIndex);
+            try {
+                Class<?> clazz = Class.forName(className);
+                if(clazz.isAnnotationPresent(PacketInfo.class)) {
+                    classes.add(clazz);
+                }
+            } catch (ClassNotFoundException ignore) {
+            }
+        }
+
+        return classes;
     }
 }
