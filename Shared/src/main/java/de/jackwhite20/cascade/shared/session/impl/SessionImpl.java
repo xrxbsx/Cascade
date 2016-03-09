@@ -60,7 +60,9 @@ public class SessionImpl implements Session {
 
     private SessionListener sessionListener;
 
-    public SessionImpl(int id, SocketChannel socketChannel, Protocol protocol, SessionListener sessionListener) throws IOException {
+    private Disconnectable disconnectable;
+
+    public SessionImpl(int id, SocketChannel socketChannel, Protocol protocol, SessionListener sessionListener, Disconnectable disconnectable) throws IOException {
 
         this.id = id;
         this.socketChannel = socketChannel;
@@ -68,6 +70,12 @@ public class SessionImpl implements Session {
         this.remoteAddress = this.socketChannel.getRemoteAddress();
         this.protocol = protocol;
         this.sessionListener = sessionListener;
+        this.disconnectable = disconnectable;
+    }
+
+    public SessionImpl(int id, SocketChannel socketChannel, Protocol protocol, SessionListener sessionListener) throws IOException {
+
+        this(id, socketChannel, protocol, sessionListener, null);
     }
 
     @SuppressWarnings("all")
@@ -149,10 +157,14 @@ public class SessionImpl implements Session {
         if(disconnected)
             return;
 
-        try {
-            socketChannel.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+        if(disconnectable == null) {
+            try {
+                socketChannel.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            disconnectable.disconnect();
         }
 
         disconnected = true;
@@ -164,6 +176,11 @@ public class SessionImpl implements Session {
 
     @Override
     public void send(Packet packet, ProtocolType protocolType) {
+
+        if(!socketChannel.isConnected()) {
+            close();
+            return;
+        }
 
         PacketWriter packetWriter = new PacketWriter();
 
