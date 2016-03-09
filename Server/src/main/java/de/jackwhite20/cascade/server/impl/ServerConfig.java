@@ -19,6 +19,7 @@
 
 package de.jackwhite20.cascade.server.impl;
 
+import de.jackwhite20.cascade.shared.Config;
 import de.jackwhite20.cascade.shared.protocol.Protocol;
 import de.jackwhite20.cascade.shared.session.SessionListener;
 
@@ -27,7 +28,7 @@ import java.net.InetSocketAddress;
 /**
  * Created by JackWhite20 on 19.02.2016.
  */
-public abstract class ServerConfig {
+public abstract class ServerConfig extends Config {
 
     private String host;
 
