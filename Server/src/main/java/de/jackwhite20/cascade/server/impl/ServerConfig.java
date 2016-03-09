@@ -20,96 +20,21 @@
 package de.jackwhite20.cascade.server.impl;
 
 import de.jackwhite20.cascade.shared.Config;
-import de.jackwhite20.cascade.shared.protocol.Protocol;
-import de.jackwhite20.cascade.shared.session.SessionListener;
-
-import java.net.InetSocketAddress;
 
 /**
  * Created by JackWhite20 on 19.02.2016.
  */
 public abstract class ServerConfig extends Config {
 
-    private String host;
-
-    private int port;
-
     private int backlog;
-
-    private int workerThreads;
-
-    private Protocol protocol;
-
-    private SessionListener sessionListener;
-
-    public String host() {
-
-        return host;
-    }
-
-    public int port() {
-
-        return port;
-    }
 
     public int backlog() {
 
         return backlog;
     }
 
-    public int workerThreads() {
-
-        return workerThreads;
-    }
-
-    public void host(String host) {
-
-        this.host = host;
-    }
-
-    public void port(int port) {
-
-        this.port = port;
-    }
-
     public void backlog(int backlog) {
 
         this.backlog = backlog;
-    }
-
-    public void workerThreads(int workerThreads) {
-
-        this.workerThreads = workerThreads;
-    }
-
-    public void address(InetSocketAddress inetSocketAddress) {
-
-        this.host = inetSocketAddress.getAddress().getHostName();
-        this.port = inetSocketAddress.getPort();
-    }
-
-    public InetSocketAddress address() {
-
-        return new InetSocketAddress(host, port);
-    }
-
-    public Protocol protocol() {
-
-        return protocol;
-    }
-
-    public void protocol(Protocol protocol) {
-
-        this.protocol = protocol;
-    }
-
-    public SessionListener sessionListener() {
-
-        return sessionListener;
-    }
-
-    public void sessionListener(SessionListener sessionListener) {
-
-        this.sessionListener = sessionListener;
     }
 }

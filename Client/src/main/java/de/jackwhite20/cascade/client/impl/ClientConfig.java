@@ -20,71 +20,10 @@
 package de.jackwhite20.cascade.client.impl;
 
 import de.jackwhite20.cascade.shared.Config;
-import de.jackwhite20.cascade.shared.protocol.Protocol;
-import de.jackwhite20.cascade.shared.session.SessionListener;
 
 /**
  * Created by JackWhite20 on 19.02.2016.
  */
 public abstract class ClientConfig extends Config {
 
-    private String host;
-
-    private int port;
-
-    private Protocol protocol;
-
-    private int workerThreads = 2;
-
-    private SessionListener sessionListener;
-
-    public String host() {
-
-        return host;
-    }
-
-    public void host(String host) {
-
-        this.host = host;
-    }
-
-    public int port() {
-
-        return port;
-    }
-
-    public void port(int port) {
-
-        this.port = port;
-    }
-
-    public Protocol protocol() {
-
-        return protocol;
-    }
-
-    public void protocol(Protocol protocol) {
-
-        this.protocol = protocol;
-    }
-
-    public int workerThreads() {
-
-        return workerThreads;
-    }
-
-    public void workerThreads(int workerThreads) {
-
-        this.workerThreads = workerThreads;
-    }
-
-    public SessionListener sessionListener() {
-
-        return sessionListener;
-    }
-
-    public void sessionListener(SessionListener sessionListener) {
-
-        this.sessionListener = sessionListener;
-    }
 }
