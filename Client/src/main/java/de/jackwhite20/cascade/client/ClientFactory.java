@@ -19,6 +19,7 @@
 
 package de.jackwhite20.cascade.client;
 
+import de.jackwhite20.cascade.client.impl.ClientConfig;
 import de.jackwhite20.cascade.client.impl.ClientImpl;
 
 /**

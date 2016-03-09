@@ -20,7 +20,6 @@
 package de.jackwhite20.cascade.client.impl;
 
 import de.jackwhite20.cascade.client.Client;
-import de.jackwhite20.cascade.client.ClientConfig;
 import de.jackwhite20.cascade.shared.protocol.Protocol;
 import de.jackwhite20.cascade.shared.protocol.packet.Packet;
 import de.jackwhite20.cascade.shared.session.Session;
