@@ -54,7 +54,11 @@ public class Listeners {
 
         listeners.forEach((l, m) -> m.forEach(method -> {
             try {
-                method.invoke(l, session, packet, protocolType);
+                if (method.getParameterCount() == 3) {
+                    method.invoke(l, session, packet, protocolType);
+                } else {
+                    method.invoke(l, session, packet);
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }

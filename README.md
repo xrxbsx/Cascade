@@ -3,8 +3,6 @@ Cascade is a simple but powerful event driven network framework.
 
 Cascade is in an stable state and tested.
 
-**I will rewrite some core code and API implementations in the next days. Some small API changes will occur but the main usage will be likely the same.**
-
 ## Why Cascade?
 
 - easy to use
@@ -28,17 +26,34 @@ Cascade is in an stable state and tested.
 <dependency>
     <groupId>de.jackwhite20</groupId>
     <artifactId>cascade-all</artifactId>
-    <version>0.2-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
 </dependency>
 ```
 
 If you don't want the client and the server in your project you can use **cascade-client** or **cascade-server** as artifact id as well.
+
+```xml
+<dependency>
+    <groupId>de.jackwhite20</groupId>
+    <artifactId>cascade-client</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+</dependency>
+```
+
+```xml
+<dependency>
+    <groupId>de.jackwhite20</groupId>
+    <artifactId>cascade-server</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+</dependency>
+```
 
 ## Examples
 
 ### Echo-Server
 - [EchoServer](https://github.com/JackWhite20/Cascade/blob/master/Example/src/main/java/de/jackwhite20/cascade/example/server/echo/EchoServer.java)
 - [EchoServerProtocol](https://github.com/JackWhite20/Cascade/blob/master/Example/src/main/java/de/jackwhite20/cascade/example/server/echo/EchoServerProtocol.java)
+- [EchoServerConfig](https://github.com/JackWhite20/Cascade/blob/master/Example/src/main/java/de/jackwhite20/cascade/example/server/echo/EchoServerConfig.java)
 
 ### Echo-Client
 - [EchoClient](https://github.com/JackWhite20/Cascade/blob/master/Example/src/main/java/de/jackwhite20/cascade/example/client/echo/EchoClient.java)

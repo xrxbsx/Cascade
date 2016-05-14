@@ -21,8 +21,11 @@ package de.jackwhite20.cascade.client.impl;
 
 import de.jackwhite20.cascade.client.Client;
 import de.jackwhite20.cascade.shared.Config;
+import de.jackwhite20.cascade.shared.callback.PacketCallback;
 import de.jackwhite20.cascade.shared.protocol.Protocol;
 import de.jackwhite20.cascade.shared.protocol.packet.Packet;
+import de.jackwhite20.cascade.shared.protocol.packet.RequestPacket;
+import de.jackwhite20.cascade.shared.protocol.packet.ResponsePacket;
 import de.jackwhite20.cascade.shared.session.Session;
 import de.jackwhite20.cascade.shared.session.SessionListener;
 import de.jackwhite20.cascade.shared.session.impl.Disconnectable;
@@ -46,6 +49,8 @@ public class ClientImpl implements Client, Disconnectable {
 
     private boolean running = false;
 
+    private boolean connected = false;
+
     private ClientConfig clientConfig;
 
     private Selector selector;
@@ -67,7 +72,7 @@ public class ClientImpl implements Client, Disconnectable {
     }
 
     @Override
-    public void connect() {
+    public boolean connect() {
 
         if(running) {
             throw new IllegalStateException("client is already connected");
@@ -87,32 +92,44 @@ public class ClientImpl implements Client, Disconnectable {
                 socketChannel.setOption(option.socketOption(), option.value());
             }
 
+            running = true;
+
             new Thread(new ClientThread()).start();
 
             connectLatch.await();
+
+            return connected;
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        return false;
     }
 
     @Override
     public void disconnect() {
 
-        running = false;
+        if(running) {
+            running = false;
 
-        if(selector != null) {
-            try {
-                selector.close();
-            } catch (IOException e) {
-                e.printStackTrace();
+            if (selector != null) {
+                try {
+                    selector.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
-        }
 
-        if(socketChannel != null) {
-            try {
-                socketChannel.close();
-            } catch (IOException e) {
-                e.printStackTrace();
+            if (socketChannel != null) {
+                try {
+                    socketChannel.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            if (connectLatch.getCount() != 0) {
+                connectLatch.countDown();
             }
         }
     }
@@ -135,6 +152,33 @@ public class ClientImpl implements Client, Disconnectable {
         send(packet, ProtocolType.TCP);
     }
 
+    /**
+     * Sends a packet and executes the packet callback when the response packet gets received.
+     * The response packet must extend ResponsePacket.
+     *
+     * @param packet the packet.
+     * @param protocolType the the protocol type.
+     * @param packetCallback the packet callback.
+     */
+    @Override
+    public <T extends ResponsePacket> void send(RequestPacket packet, ProtocolType protocolType, PacketCallback<T> packetCallback) {
+
+        session.send(packet, protocolType, packetCallback);
+    }
+
+    /**
+     * Sends a packet over TCP (ProtocolType.TCP) and executes the packet callback when the response packet gets received.
+     * The response packet must extend ResponsePacket.
+     *
+     * @param packet the packet.
+     * @param packetCallback the packet callback.
+     */
+    @Override
+    public <T extends ResponsePacket> void send(RequestPacket packet, PacketCallback<T> packetCallback) {
+
+        session.send(packet, packetCallback);
+    }
+
     @Override
     public void sessionListener(SessionListener sessionListener) {
 
@@ -146,12 +190,11 @@ public class ClientImpl implements Client, Disconnectable {
         @Override
         public void run() {
 
-            running = true;
-
             while (running) {
                 try {
-                    if (selector.select() == 0)
+                    if (selector.select() == 0) {
                         continue;
+                    }
 
                     Set<SelectionKey> keys = selector.selectedKeys();
 
@@ -162,8 +205,9 @@ public class ClientImpl implements Client, Disconnectable {
 
                         keyIterator.remove();
 
-                        if(!key.isValid())
+                        if(!key.isValid()) {
                             continue;
+                        }
 
                         if(key.isConnectable()) {
                             socketChannel.finishConnect();
@@ -172,11 +216,13 @@ public class ClientImpl implements Client, Disconnectable {
                             session = new SessionImpl(idCounter.getAndIncrement(), socketChannel, protocol, sessionListener, ClientImpl.this);
 
                             // Register the read operation and attach the session object
-                            socketChannel.register(selector, SelectionKey.OP_READ).attach(session);
+                            socketChannel.register(selector, SelectionKey.OP_READ, session);
 
                             if(sessionListener != null) {
                                 sessionListener.onConnected(session);
                             }
+
+                            connected = true;
 
                             connectLatch.countDown();
                         }

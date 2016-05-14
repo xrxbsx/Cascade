@@ -37,8 +37,6 @@ public abstract class Config {
 
     private Protocol protocol;
 
-    private int workerThreads = 2;
-
     private SessionListener sessionListener;
 
     private List<Option> options = new ArrayList<>();
@@ -71,16 +69,6 @@ public abstract class Config {
     public void protocol(Protocol protocol) {
 
         this.protocol = protocol;
-    }
-
-    public int workerThreads() {
-
-        return workerThreads;
-    }
-
-    public void workerThreads(int workerThreads) {
-
-        this.workerThreads = workerThreads;
     }
 
     public SessionListener sessionListener() {

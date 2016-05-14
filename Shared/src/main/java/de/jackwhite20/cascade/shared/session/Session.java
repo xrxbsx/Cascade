@@ -55,6 +55,16 @@ public interface Session {
     void send(Packet packet, ProtocolType protocolType);
 
     /**
+     * Sends a packet and executes the packet callback when the response packet gets received.
+     * The response packet must extend ResponsePacket.
+     *
+     * @param packet the request packet.
+     * @param protocolType the the protocol type.
+     * @param packetCallback the packet callback.
+     */
+    <T extends ResponsePacket> void send(RequestPacket packet, ProtocolType protocolType, PacketCallback<T> packetCallback);
+
+    /**
      * Sends a packet over TCP (ProtocolType.TCP) and executes the packet callback when the response packet gets received.
      * The response packet must extend ResponsePacket.
      *

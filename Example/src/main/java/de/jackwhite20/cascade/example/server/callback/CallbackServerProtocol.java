@@ -17,36 +17,22 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.jackwhite20.cascade.server.impl;
+package de.jackwhite20.cascade.example.server.callback;
 
-import de.jackwhite20.cascade.shared.Config;
+import de.jackwhite20.cascade.example.shared.callback.TestRequestPacket;
+import de.jackwhite20.cascade.example.shared.callback.TestResponsePacket;
+import de.jackwhite20.cascade.shared.protocol.Protocol;
+import de.jackwhite20.cascade.shared.protocol.listener.PacketListener;
 
 /**
- * Created by JackWhite20 on 19.02.2016.
+ * Created by JackWhite20 on 14.01.2016.
  */
-public abstract class ServerConfig extends Config {
+public class CallbackServerProtocol extends Protocol {
 
-    private int workerThreads = 2;
+    public CallbackServerProtocol(PacketListener packetListener) {
 
-    private int backlog;
-
-    public int workerThreads() {
-
-        return workerThreads;
-    }
-
-    public void workerThreads(int workerThreads) {
-
-        this.workerThreads = workerThreads;
-    }
-
-    public int backlog() {
-
-        return backlog;
-    }
-
-    public void backlog(int backlog) {
-
-        this.backlog = backlog;
+        registerListener(packetListener);
+        registerPacket(TestRequestPacket.class);
+        registerPacket(TestResponsePacket.class);
     }
 }
