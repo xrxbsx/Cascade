@@ -22,9 +22,11 @@ package de.jackwhite20.cascade.client;
 import de.jackwhite20.cascade.client.impl.ClientConfig;
 import de.jackwhite20.cascade.client.impl.ClientImpl;
 import de.jackwhite20.cascade.shared.Config;
+import de.jackwhite20.cascade.shared.Options;
 import de.jackwhite20.cascade.shared.protocol.Protocol;
 import de.jackwhite20.cascade.shared.session.SessionListener;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -37,9 +39,24 @@ public class ClientFactory {
         return new ClientImpl(clientConfig);
     }
 
+    public static Client create(String host, int port, Protocol protocol, List<Config.Option> options) {
+
+        return create(new DefaultClientConfig(host, port, protocol, options, null));
+    }
+
+    public static Client create(String host, int port, Protocol protocol, Options options) {
+
+        return create(new DefaultClientConfig(host, port, protocol, options.list(), null));
+    }
+
     public static Client create(String host, int port, Protocol protocol, List<Config.Option> options, SessionListener sessionListener) {
 
         return create(new DefaultClientConfig(host, port, protocol, options, sessionListener));
+    }
+
+    public static Client create(String host, int port, Protocol protocol, Options options, SessionListener sessionListener) {
+
+        return create(new DefaultClientConfig(host, port, protocol, options.list(), sessionListener));
     }
 
     public static Client create(String host, int port, Protocol protocol, SessionListener sessionListener) {
@@ -49,7 +66,7 @@ public class ClientFactory {
 
     public static Client create(String host, int port, Protocol protocol) {
 
-        return create(host, port, protocol, null);
+        return create(host, port, protocol, Collections.emptyList(), null);
     }
 
     private static class DefaultClientConfig extends ClientConfig {
