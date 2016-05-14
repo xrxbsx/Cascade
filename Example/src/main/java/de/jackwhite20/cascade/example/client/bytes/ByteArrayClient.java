@@ -21,12 +21,15 @@ package de.jackwhite20.cascade.example.client.bytes;
 
 import de.jackwhite20.cascade.client.Client;
 import de.jackwhite20.cascade.client.ClientFactory;
+import de.jackwhite20.cascade.shared.Options;
 import de.jackwhite20.cascade.shared.protocol.impl.ByteArrayPacket;
 import de.jackwhite20.cascade.shared.protocol.impl.ByteArrayProtocol;
 import de.jackwhite20.cascade.shared.protocol.listener.PacketHandler;
 import de.jackwhite20.cascade.shared.protocol.listener.PacketListener;
 import de.jackwhite20.cascade.shared.session.Session;
 import de.jackwhite20.cascade.shared.session.impl.ProtocolType;
+
+import java.net.StandardSocketOptions;
 
 /**
  * Created by JackWhite20 on 03.01.2016.
@@ -52,7 +55,8 @@ public class ByteArrayClient implements PacketListener {
 
     public void connect() {
 
-        client = ClientFactory.create(host, port, new ByteArrayProtocol(this));
+        // Create a new client and set the TCP_NODELAY option to true
+        client = ClientFactory.create(host, port, new ByteArrayProtocol(this), Options.of(StandardSocketOptions.TCP_NODELAY, true));
         client.connect();
 
         System.out.println("Connected!");

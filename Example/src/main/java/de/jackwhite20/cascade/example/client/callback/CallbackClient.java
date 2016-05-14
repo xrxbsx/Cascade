@@ -23,6 +23,9 @@ import de.jackwhite20.cascade.client.Client;
 import de.jackwhite20.cascade.client.ClientFactory;
 import de.jackwhite20.cascade.example.shared.callback.TestRequestPacket;
 import de.jackwhite20.cascade.example.shared.callback.TestResponsePacket;
+import de.jackwhite20.cascade.shared.Options;
+
+import java.net.StandardSocketOptions;
 
 /**
  * Created by JackWhite20 on 14.01.2016.
@@ -48,7 +51,8 @@ public class CallbackClient {
 
     public void connect() {
 
-        client = ClientFactory.create(host, port, new CallbackClientProtocol());
+        // Create a new client and set the TCP_NODELAY option to true
+        client = ClientFactory.create(host, port, new CallbackClientProtocol(), Options.of(StandardSocketOptions.TCP_NODELAY, true));
         client.connect();
 
         System.out.println("Connected!");

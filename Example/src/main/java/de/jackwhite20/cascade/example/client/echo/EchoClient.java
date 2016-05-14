@@ -22,7 +22,10 @@ package de.jackwhite20.cascade.example.client.echo;
 import de.jackwhite20.cascade.client.Client;
 import de.jackwhite20.cascade.client.ClientFactory;
 import de.jackwhite20.cascade.example.shared.echo.ChatPacket;
+import de.jackwhite20.cascade.shared.Options;
 import de.jackwhite20.cascade.shared.session.impl.ProtocolType;
+
+import java.net.StandardSocketOptions;
 
 /**
  * Created by JackWhite20 on 07.11.2015.
@@ -48,7 +51,8 @@ public class EchoClient {
 
     public void connect() {
 
-        client = ClientFactory.create(host, port, new EchoClientProtocol(new EchoClientPacketListener()));
+        // Create a new client and set the TCP_NODELAY option to true
+        client = ClientFactory.create(host, port, new EchoClientProtocol(new EchoClientPacketListener()), Options.of(StandardSocketOptions.TCP_NODELAY, true));
         client.connect();
 
         System.out.println("Connected!");
