@@ -19,7 +19,10 @@
 
 package de.jackwhite20.cascade.client;
 
+import de.jackwhite20.cascade.shared.callback.PacketCallback;
 import de.jackwhite20.cascade.shared.protocol.packet.Packet;
+import de.jackwhite20.cascade.shared.protocol.packet.RequestPacket;
+import de.jackwhite20.cascade.shared.protocol.packet.ResponsePacket;
 import de.jackwhite20.cascade.shared.session.SessionListener;
 import de.jackwhite20.cascade.shared.session.impl.ProtocolType;
 
@@ -33,7 +36,7 @@ public interface Client {
      *
      * This method will block until the socket is connected or an exception is thrown.
      */
-    void connect();
+    boolean connect();
 
     /**
      * Sets the session listener.
@@ -68,4 +71,23 @@ public interface Client {
      * @param protocolType the protocol type.
      */
     void send(Packet packet, ProtocolType protocolType);
+
+    /**
+     * Sends a packet and executes the packet callback when the response packet gets received.
+     * The response packet must extend ResponsePacket.
+     *
+     * @param packet the packet.
+     * @param protocolType the the protocol type.
+     * @param packetCallback the packet callback.
+     */
+    <T extends ResponsePacket> void send(RequestPacket packet, ProtocolType protocolType, PacketCallback<T> packetCallback);
+
+    /**
+     * Sends a packet over TCP (ProtocolType.TCP) and executes the packet callback when the response packet gets received.
+     * The response packet must extend ResponsePacket.
+     *
+     * @param packet the packet.
+     * @param packetCallback the packet callback.
+     */
+    <T extends ResponsePacket> void send(RequestPacket packet, PacketCallback<T> packetCallback);
 }

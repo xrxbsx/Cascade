@@ -37,28 +37,27 @@ public class ClientFactory {
         return new ClientImpl(clientConfig);
     }
 
-    public static Client create(String host, int port, int workerThreads, Protocol protocol, List<Config.Option> options, SessionListener sessionListener) {
+    public static Client create(String host, int port, Protocol protocol, List<Config.Option> options, SessionListener sessionListener) {
 
-        return create(new DefaultClientConfig(host, port, workerThreads, protocol, options, sessionListener));
+        return create(new DefaultClientConfig(host, port, protocol, options, sessionListener));
     }
 
-    public static Client create(String host, int port, int workerThreads, Protocol protocol, SessionListener sessionListener) {
+    public static Client create(String host, int port, Protocol protocol, SessionListener sessionListener) {
 
-        return create(new DefaultClientConfig(host, port, workerThreads, protocol, sessionListener));
+        return create(new DefaultClientConfig(host, port, protocol, sessionListener));
     }
 
-    public static Client create(String host, int port, int workerThreads, Protocol protocol) {
+    public static Client create(String host, int port, Protocol protocol) {
 
-        return create(host, port, workerThreads, protocol, null);
+        return create(host, port, protocol, null);
     }
 
     private static class DefaultClientConfig extends ClientConfig {
 
-        public DefaultClientConfig(String host, int port, int workerThreads, Protocol protocol, List<Config.Option> options, SessionListener sessionListener) {
+        public DefaultClientConfig(String host, int port, Protocol protocol, List<Config.Option> options, SessionListener sessionListener) {
 
             host(host);
             port(port);
-            workerThreads(workerThreads);
             protocol(protocol);
             if(options != null) {
                 //noinspection unchecked
@@ -67,9 +66,9 @@ public class ClientFactory {
             sessionListener(sessionListener);
         }
 
-        public DefaultClientConfig(String host, int port, int workerThreads, Protocol protocol, SessionListener sessionListener) {
+        public DefaultClientConfig(String host, int port, Protocol protocol, SessionListener sessionListener) {
 
-            this(host, port, workerThreads, protocol, null, sessionListener);
+            this(host, port, protocol, null, sessionListener);
         }
     }
 }

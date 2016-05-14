@@ -64,13 +64,15 @@ public class Protocol {
         }
 
         PacketInfo packetInfo = clazz.getAnnotation(PacketInfo.class);
-        if(packetInfo == null)
+        if(packetInfo == null) {
             throw new IllegalArgumentException("class " + clazz.getSimpleName() + " has no PacketInfo annotation");
+        }
 
         byte id = packetInfo.id();
 
-        if(packets.containsKey(id))
+        if(packets.containsKey(id)) {
             throw new IllegalArgumentException("packet with id " + id + " is already registered");
+        }
 
         packets.put(id, clazz);
         packetByteMap.put(clazz, id);
@@ -97,17 +99,20 @@ public class Protocol {
      */
     public void unregisterPacket(Class<? extends Packet> clazz) {
 
-        if(clazz == null)
+        if(clazz == null) {
             throw new IllegalArgumentException("clazz cannot be null");
+        }
 
         PacketInfo packetInfo = clazz.getAnnotation(PacketInfo.class);
-        if(packetInfo == null)
+        if(packetInfo == null) {
             throw new IllegalArgumentException("class " + clazz.getSimpleName() + " has no PacketInfo annotation");
+        }
 
         byte id = packetInfo.id();
 
-        if(!packets.containsKey(id))
+        if(!packets.containsKey(id)) {
             throw new IllegalArgumentException("packet with id " + id + " is not registered");
+        }
 
         packets.remove(id);
         packetByteMap.remove(clazz);
@@ -120,23 +125,28 @@ public class Protocol {
      */
     public void registerListener(PacketListener packetListener) {
 
-        if(packetListener == null)
+        if(packetListener == null) {
             throw new IllegalArgumentException("packetListener cannot be null");
+        }
 
         for (Method method : packetListener.getClass().getDeclaredMethods()) {
-            if(method.getParameterCount() != 3)
+            if(method.getParameterCount() < 2) {
                 continue;
+            }
 
-            if(!method.isAnnotationPresent(PacketHandler.class))
+            if(!method.isAnnotationPresent(PacketHandler.class)) {
                 continue;
+            }
 
             Class<?> paramType = method.getParameterTypes()[1];
 
-            if (!Packet.class.isAssignableFrom(paramType))
+            if (!Packet.class.isAssignableFrom(paramType)) {
                 continue;
+            }
 
-            if (!listeners.containsKey(paramType))
+            if (!listeners.containsKey(paramType)) {
                 listeners.put(paramType, new Listeners());
+            }
 
             listeners.get(paramType).register(packetListener, method);
         }
@@ -149,23 +159,28 @@ public class Protocol {
      */
     public void unregisterListener(PacketListener packetListener) {
 
-        if(packetListener == null)
+        if(packetListener == null) {
             throw new IllegalArgumentException("packetListener cannot be null");
+        }
 
         for (Method method : packetListener.getClass().getDeclaredMethods()) {
-            if(method.getParameterCount() != 2)
+            if(method.getParameterCount() < 2) {
                 continue;
+            }
 
-            if(!method.isAnnotationPresent(PacketHandler.class))
+            if(!method.isAnnotationPresent(PacketHandler.class)) {
                 continue;
+            }
 
             Class<?> paramType = method.getParameterTypes()[1];
 
-            if (!Packet.class.isAssignableFrom(paramType))
+            if (!Packet.class.isAssignableFrom(paramType)) {
                 continue;
+            }
 
-            if(listeners.containsKey(paramType))
+            if(listeners.containsKey(paramType)) {
                 listeners.get(paramType).unregister(packetListener);
+            }
         }
     }
 
@@ -178,14 +193,17 @@ public class Protocol {
      */
     public void call(Class<? extends Packet> clazz, Session session, Packet packet, ProtocolType protocolType) {
 
-        if(clazz == null)
+        if(clazz == null) {
             throw new IllegalArgumentException("clazz cannot be null");
+        }
 
-        if(session == null)
+        if(session == null) {
             throw new IllegalArgumentException("session cannot be null");
+        }
 
-        if(packet == null)
+        if(packet == null) {
             throw new IllegalArgumentException("packet cannot be null");
+        }
 
         Listeners l = listeners.get(clazz);
         if(l != null) {
@@ -203,8 +221,9 @@ public class Protocol {
      */
     public byte findId(Class<? extends Packet> clazz) {
 
-        if(!packetByteMap.containsKey(clazz))
+        if(!packetByteMap.containsKey(clazz)) {
             throw new IllegalStateException("the class " + clazz.getSimpleName() + " is not registered as a packet");
+        }
 
         return packetByteMap.get(clazz);
     }
@@ -217,8 +236,9 @@ public class Protocol {
      */
     public Packet create(byte id) {
 
-        if(!packets.containsKey(id))
+        if(!packets.containsKey(id)) {
             throw new IllegalStateException("a packet with id " + id + " does not exists");
+        }
 
         try {
             return packets.get(id).newInstance();

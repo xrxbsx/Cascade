@@ -116,8 +116,9 @@ public class SessionImpl implements Session {
         while (tcpBuffer.remaining() > 0) {
             tcpBuffer.mark();
 
-            if (tcpBuffer.remaining() < 4)
+            if (tcpBuffer.remaining() < 4) {
                 break;
+            }
 
             int readableBytes = tcpBuffer.getInt();
             if (tcpBuffer.remaining() < readableBytes) {
@@ -154,8 +155,9 @@ public class SessionImpl implements Session {
     @Override
     public void close() {
 
-        if(disconnected)
+        if(disconnected) {
             return;
+        }
 
         if(disconnectable == null) {
             try {
@@ -214,11 +216,17 @@ public class SessionImpl implements Session {
     }
 
     @Override
-    public <T extends ResponsePacket> void send(RequestPacket packet, PacketCallback<T> packetCallback) {
+    public <T extends ResponsePacket> void send(RequestPacket packet, ProtocolType protocolType, PacketCallback<T> packetCallback) {
 
         callbackPackets.put(packet.callbackId(), packetCallback);
 
-        send(packet, ProtocolType.TCP);
+        send(packet, protocolType);
+    }
+
+    @Override
+    public <T extends ResponsePacket> void send(RequestPacket packet, PacketCallback<T> packetCallback) {
+
+        send(packet, ProtocolType.TCP, packetCallback);
     }
 
     @Override
