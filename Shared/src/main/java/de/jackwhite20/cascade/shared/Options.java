@@ -35,14 +35,18 @@ public class Options {
         this.options.add(option);
     }
 
-    public <T> void with(SocketOption<T> socketOption, T value) {
+    public <T> Options with(SocketOption<T> socketOption, T value) {
 
         options.add(new Config.Option<>(socketOption, value));
+
+        return this;
     }
 
-    public <T> void and(SocketOption<T> socketOption, T value) {
+    public <T> Options and(SocketOption<T> socketOption, T value) {
 
         options.add(new Config.Option<>(socketOption, value));
+
+        return this;
     }
 
     public List<Config.Option> list() {
