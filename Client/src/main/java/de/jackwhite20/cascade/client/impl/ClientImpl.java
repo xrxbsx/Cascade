@@ -111,6 +111,7 @@ public class ClientImpl implements Client, Disconnectable {
 
         if(running) {
             running = false;
+            connected = false;
 
             if (selector != null) {
                 try {
@@ -138,6 +139,12 @@ public class ClientImpl implements Client, Disconnectable {
     public boolean running() {
 
         return running;
+    }
+
+    @Override
+    public boolean connected() {
+
+        return connected;
     }
 
     @Override

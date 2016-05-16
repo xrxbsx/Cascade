@@ -132,14 +132,16 @@ public class ServerImpl implements Server, Runnable {
 
                     keyIterator.remove();
 
-                    if(!key.isValid())
+                    if(!key.isValid()) {
                         continue;
+                    }
 
                     if(key.isAcceptable()) {
                         SocketChannel socketChannel = serverSocketChannel.accept();
 
-                        if(socketChannel == null)
+                        if(socketChannel == null) {
                             continue;
+                        }
 
                         socketChannel.configureBlocking(false);
 

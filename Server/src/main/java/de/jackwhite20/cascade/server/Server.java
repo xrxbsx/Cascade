@@ -44,7 +44,7 @@ public interface Server {
     void stop();
 
     /**
-     * Returns if the server is bound and running.
+     * Returns if the server is running.
      *
      * @return true if running otherwise false.
      */

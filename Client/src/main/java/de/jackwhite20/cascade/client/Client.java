@@ -51,11 +51,18 @@ public interface Client {
     void disconnect();
 
     /**
-     * Returns if the client is connected and running.
+     * Returns if the client is running.
      *
      * @return true if running otherwise false.
      */
     boolean running();
+
+    /**
+     * Returns if the client is connected.
+     *
+     * @return true if connected otherwise false.
+     */
+    boolean connected();
 
     /**
      * Sends a packet over TCP (ProtocolType.TCP).
