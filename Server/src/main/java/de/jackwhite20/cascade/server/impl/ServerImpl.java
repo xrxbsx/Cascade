@@ -197,19 +197,25 @@ public class ServerImpl implements Server, Runnable {
 
         running = false;
 
-        try {
-            selector.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+        if (selector != null) {
+            try {
+                selector.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
 
-        try {
-            serverSocketChannel.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+        if (serverSocketChannel != null) {
+            try {
+                serverSocketChannel.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
 
-        workerPool.shutdown();
+        if (workerPool != null) {
+            workerPool.shutdown();
+        }
     }
 
     @Override
