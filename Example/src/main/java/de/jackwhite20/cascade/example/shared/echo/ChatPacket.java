@@ -19,15 +19,14 @@
 
 package de.jackwhite20.cascade.example.shared.echo;
 
-import de.jackwhite20.cascade.shared.protocol.io.PacketReader;
-import de.jackwhite20.cascade.shared.protocol.io.PacketWriter;
 import de.jackwhite20.cascade.shared.protocol.packet.Packet;
 import de.jackwhite20.cascade.shared.protocol.packet.PacketInfo;
+import io.netty.buffer.ByteBuf;
 
 /**
  * Created by JackWhite20 on 02.01.2016.
  */
-@PacketInfo(id = 0)
+@PacketInfo(0)
 public class ChatPacket extends Packet {
 
     private String message;
@@ -45,15 +44,15 @@ public class ChatPacket extends Packet {
     }
 
     @Override
-    public void read(PacketReader reader) throws Exception {
+    public void read(ByteBuf byteBuf) throws Exception {
 
-        message = reader.readUTF();
+        message = readString(byteBuf);
     }
 
     @Override
-    public void write(PacketWriter writer) throws Exception {
+    public void write(ByteBuf byteBuf) throws Exception {
 
-        writer.writeUTF(message);
+        writeString(byteBuf, message);
     }
 
     public String message() {
