@@ -24,6 +24,7 @@ import de.jackwhite20.cascade.shared.session.SessionListener;
 
 import java.net.SocketOption;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -78,9 +79,9 @@ public abstract class Config {
         return sessionListener;
     }
 
-    public void sessionListener(SessionListener sessionListener) {
+    public void sessionListener(SessionListener... sessionListener) {
 
-        this.sessionListener.add(sessionListener);
+        Collections.addAll(this.sessionListener, sessionListener);
     }
 
     public <T> void option(SocketOption<T> socketOption, T value) {
