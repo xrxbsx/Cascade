@@ -23,14 +23,13 @@ import de.jackwhite20.cascade.server.Server;
 import de.jackwhite20.cascade.shared.pipeline.PipelineUtils;
 import de.jackwhite20.cascade.shared.pipeline.initialize.CascadeChannelInitializer;
 import de.jackwhite20.cascade.shared.session.SessionListener;
+import de.jackwhite20.cascade.shared.thread.CascadeThreadFactory;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 /**
@@ -55,19 +54,7 @@ public class CascadeServer implements Server {
     public void start() {
 
         bossGroup = new NioEventLoopGroup();
-        workerGroup = PipelineUtils.newEventLoopGroup(serverConfig.workerThreads(), new ThreadFactory() {
-
-            private final AtomicInteger id = new AtomicInteger(0);
-
-            @Override
-            public Thread newThread(Runnable r) {
-
-                Thread thread = new Thread(r);
-                thread.setName("Cascade Server Thread #" + id.getAndIncrement());
-
-                return thread;
-            }
-        });
+        workerGroup = PipelineUtils.newEventLoopGroup(serverConfig.workerThreads(), new CascadeThreadFactory("Server"));
 
         try {
             ServerBootstrap b = new ServerBootstrap();

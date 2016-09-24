@@ -23,14 +23,13 @@ import de.jackwhite20.cascade.client.Client;
 import de.jackwhite20.cascade.shared.pipeline.PipelineUtils;
 import de.jackwhite20.cascade.shared.pipeline.initialize.CascadeChannelInitializer;
 import de.jackwhite20.cascade.shared.protocol.packet.Packet;
+import de.jackwhite20.cascade.shared.thread.CascadeThreadFactory;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoopGroup;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by JackWhite20 on 24.09.2016.
@@ -52,25 +51,14 @@ public class CascadeClient implements Client {
     @Override
     public void connect() {
 
-        workerGroup = PipelineUtils.newEventLoopGroup(clientConfig.workerThreads(), new ThreadFactory() {
-
-            private final AtomicInteger id = new AtomicInteger(0);
-
-            @Override
-            public Thread newThread(Runnable r) {
-
-                Thread thread = new Thread(r);
-                thread.setName("Cascade Client Thread #" + id.getAndIncrement());
-
-                return thread;
-            }
-        });
+        workerGroup = PipelineUtils.newEventLoopGroup(clientConfig.workerThreads(), new CascadeThreadFactory("Client"));
 
         Bootstrap b = new Bootstrap();
         b.group(workerGroup)
                 .channel(PipelineUtils.getChannel())
                 .handler(new CascadeChannelInitializer(clientConfig.protocol(), clientConfig.sessionListener()))
                 .remoteAddress(new InetSocketAddress(clientConfig.host(), clientConfig.port()));
+
         try {
             this.channel = b.connect().sync().channel();
         } catch (InterruptedException e) {
