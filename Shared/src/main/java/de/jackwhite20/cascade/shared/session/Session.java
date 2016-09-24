@@ -19,15 +19,10 @@
 
 package de.jackwhite20.cascade.shared.session;
 
-import de.jackwhite20.cascade.shared.callback.PacketCallback;
 import de.jackwhite20.cascade.shared.protocol.Protocol;
 import de.jackwhite20.cascade.shared.protocol.packet.Packet;
-import de.jackwhite20.cascade.shared.protocol.packet.RequestPacket;
-import de.jackwhite20.cascade.shared.protocol.packet.ResponsePacket;
-import de.jackwhite20.cascade.shared.session.impl.ProtocolType;
 
 import java.net.SocketAddress;
-import java.nio.channels.SocketChannel;
 
 /**
  * Created by JackWhite20 on 09.01.2016.
@@ -40,52 +35,11 @@ public interface Session {
     void close();
 
     /**
-     * Sends a packet over TCP (ProtocolType.TCP).
+     * Sends a packet.
      *
      * @param packet the packet.
      */
     void send(Packet packet);
-
-    /**
-     * Sends a packet over the given protocol type.
-     *
-     * @param packet the packet.
-     * @param protocolType the protocol type.
-     */
-    void send(Packet packet, ProtocolType protocolType);
-
-    /**
-     * Sends a packet and executes the packet callback when the response packet gets received.
-     * The response packet must extend ResponsePacket.
-     *
-     * @param packet the request packet.
-     * @param protocolType the the protocol type.
-     * @param packetCallback the packet callback.
-     */
-    <T extends ResponsePacket> void send(RequestPacket packet, ProtocolType protocolType, PacketCallback<T> packetCallback);
-
-    /**
-     * Sends a packet over TCP (ProtocolType.TCP) and executes the packet callback when the response packet gets received.
-     * The response packet must extend ResponsePacket.
-     *
-     * @param packet the request packet.
-     * @param packetCallback the packet callback.
-     */
-    <T extends ResponsePacket> void send(RequestPacket packet, PacketCallback<T> packetCallback);
-
-    /**
-     * Gets the id from the session.
-     *
-     * @return the id.
-     */
-    int id();
-
-    /**
-     * Gets the socket channel from this session.
-     *
-     * @return the socket channel.
-     */
-    SocketChannel socketChannel();
 
     /**
      * Gets the protocol class with which packets and packet listeners are registered.
@@ -107,5 +61,5 @@ public interface Session {
      *
      * @return if the session is connected to a remote host or not.
      */
-    boolean connected();
+    boolean isConnected();
 }

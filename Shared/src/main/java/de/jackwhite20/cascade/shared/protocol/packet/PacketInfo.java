@@ -36,5 +36,5 @@ public @interface PacketInfo {
      *
      * @return the id.
      */
-    byte id() default 0;
+    byte value() default 0;
 }

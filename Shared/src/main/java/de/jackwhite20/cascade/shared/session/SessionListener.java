@@ -24,7 +24,17 @@ package de.jackwhite20.cascade.shared.session;
  */
 public interface SessionListener {
 
+    /**
+     * Called when the session has connected.
+     *
+     * @param session the session instance.
+     */
     void onConnected(Session session);
 
+    /**
+     * Called when the session has disconnected.
+     *
+     * @param session the session instance.
+     */
     void onDisconnected(Session session);
 }
