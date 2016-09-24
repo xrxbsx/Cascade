@@ -36,4 +36,14 @@ public class SessionListenerAdapter implements SessionListener {
     public void onConnected(Session session) {
 
     }
+
+    @Override
+    public void onStarted() {
+
+    }
+
+    @Override
+    public void onStopped() {
+
+    }
 }

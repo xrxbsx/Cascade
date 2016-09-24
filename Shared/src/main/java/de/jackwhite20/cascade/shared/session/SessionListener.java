@@ -37,4 +37,14 @@ public interface SessionListener {
      * @param session the session instance.
      */
     void onDisconnected(Session session);
+
+    /**
+     * Called when the server has started.
+     */
+    void onStarted();
+
+    /**
+     * Called when the server has stopped.
+     */
+    void onStopped();
 }
