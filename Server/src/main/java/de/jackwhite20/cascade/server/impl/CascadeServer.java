@@ -89,4 +89,10 @@ public class CascadeServer implements Server {
 
         return serverChannel.isActive();
     }
+
+    @Override
+    public void addSessionListener(SessionListener... sessionListener) {
+
+        serverConfig.sessionListener(sessionListener);
+    }
 }

@@ -71,7 +71,7 @@ public class ClientFactory {
 
     private static class DefaultClientConfig extends ClientConfig {
 
-        public DefaultClientConfig(String host, int port, Protocol protocol, List<Config.Option> options, SessionListener sessionListener) {
+        public DefaultClientConfig(String host, int port, Protocol protocol, List<Config.Option> options, SessionListener... sessionListener) {
 
             host(host);
             port(port);
@@ -79,10 +79,14 @@ public class ClientFactory {
             if(options != null) {
                 options.forEach(option -> option(option.socketOption(), option.value()));
             }
-            sessionListener(sessionListener);
+            if (sessionListener != null) {
+                for (SessionListener listener : sessionListener) {
+                    sessionListener(listener);
+                }
+            }
         }
 
-        public DefaultClientConfig(String host, int port, Protocol protocol, SessionListener sessionListener) {
+        public DefaultClientConfig(String host, int port, Protocol protocol, SessionListener... sessionListener) {
 
             this(host, port, protocol, null, sessionListener);
         }

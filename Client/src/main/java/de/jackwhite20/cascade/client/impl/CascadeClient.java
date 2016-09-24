@@ -23,6 +23,7 @@ import de.jackwhite20.cascade.client.Client;
 import de.jackwhite20.cascade.shared.pipeline.PipelineUtils;
 import de.jackwhite20.cascade.shared.pipeline.initialize.CascadeChannelInitializer;
 import de.jackwhite20.cascade.shared.protocol.packet.Packet;
+import de.jackwhite20.cascade.shared.session.SessionListener;
 import de.jackwhite20.cascade.shared.thread.CascadeThreadFactory;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
@@ -92,5 +93,11 @@ public class CascadeClient implements Client {
     public SocketAddress remoteAddress() {
 
         return channel.remoteAddress();
+    }
+
+    @Override
+    public void addSessionListener(SessionListener... sessionListener) {
+
+        clientConfig.sessionListener(sessionListener);
     }
 }

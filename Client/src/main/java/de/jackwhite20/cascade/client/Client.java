@@ -20,6 +20,7 @@
 package de.jackwhite20.cascade.client;
 
 import de.jackwhite20.cascade.shared.protocol.packet.Packet;
+import de.jackwhite20.cascade.shared.session.SessionListener;
 
 import java.net.SocketAddress;
 
@@ -60,4 +61,11 @@ public interface Client {
      * @return the remote address.
      */
     SocketAddress remoteAddress();
+
+    /**
+     * Adds the session listeners to the client.
+     *
+     * @param sessionListener the session listeners.
+     */
+    void addSessionListener(SessionListener... sessionListener);
 }
