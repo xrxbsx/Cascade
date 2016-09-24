@@ -19,15 +19,32 @@
 
 package de.jackwhite20.cascade.shared.protocol.packet;
 
-import de.jackwhite20.cascade.shared.protocol.io.PacketReader;
-import de.jackwhite20.cascade.shared.protocol.io.PacketWriter;
+import io.netty.buffer.ByteBuf;
+
+import java.io.UnsupportedEncodingException;
 
 /**
  * Created by JackWhite20 on 02.01.2016.
  */
 public abstract class Packet {
 
-    public abstract void read(PacketReader reader) throws Exception;
+    public abstract void read(ByteBuf byteBuf) throws Exception;
 
-    public abstract void write(PacketWriter writer) throws Exception;
+    public abstract void write(ByteBuf byteBuf) throws Exception;
+
+    public String readString(ByteBuf byteBuf) throws UnsupportedEncodingException {
+
+        byte[] bytes = new byte[byteBuf.readShort()];
+        byteBuf.readBytes(bytes);
+
+        return new String(bytes, "utf-8");
+    }
+
+    public void writeString(ByteBuf byteBuf, String string) throws UnsupportedEncodingException {
+
+        byte[] bytes = string.getBytes("utf-8");
+
+        byteBuf.writeShort(bytes.length);
+        byteBuf.writeBytes(bytes);
+    }
 }

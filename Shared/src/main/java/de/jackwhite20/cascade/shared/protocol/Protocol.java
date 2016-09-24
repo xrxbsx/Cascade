@@ -25,7 +25,6 @@ import de.jackwhite20.cascade.shared.protocol.listener.PacketListener;
 import de.jackwhite20.cascade.shared.protocol.packet.Packet;
 import de.jackwhite20.cascade.shared.protocol.packet.PacketInfo;
 import de.jackwhite20.cascade.shared.session.Session;
-import de.jackwhite20.cascade.shared.session.impl.ProtocolType;
 
 import java.io.File;
 import java.lang.reflect.Method;
@@ -53,7 +52,7 @@ public class Protocol {
 
     /**
      * Registers a new packet to the protocol.
-     * The class must have a PacketInfo annotation with a id specified.
+     * The class must have a PacketInfo annotation with a value specified.
      *
      * @param clazz the packet class.
      */
@@ -68,10 +67,10 @@ public class Protocol {
             throw new IllegalArgumentException("class " + clazz.getSimpleName() + " has no PacketInfo annotation");
         }
 
-        byte id = packetInfo.id();
+        byte id = packetInfo.value();
 
         if(packets.containsKey(id)) {
-            throw new IllegalArgumentException("packet with id " + id + " is already registered");
+            throw new IllegalArgumentException("packet with value " + id + " is already registered");
         }
 
         packets.put(id, clazz);
@@ -93,7 +92,7 @@ public class Protocol {
 
     /**
      * Unregisters a packet from the protocol.
-     * The class must have a PacketInfo annotation with a id specified.
+     * The class must have a PacketInfo annotation with a value specified.
      *
      * @param clazz the packet class.
      */
@@ -108,10 +107,10 @@ public class Protocol {
             throw new IllegalArgumentException("class " + clazz.getSimpleName() + " has no PacketInfo annotation");
         }
 
-        byte id = packetInfo.id();
+        byte id = packetInfo.value();
 
         if(!packets.containsKey(id)) {
-            throw new IllegalArgumentException("packet with id " + id + " is not registered");
+            throw new IllegalArgumentException("packet with value " + id + " is not registered");
         }
 
         packets.remove(id);
@@ -191,7 +190,7 @@ public class Protocol {
      * @param session the session.
      * @param packet the packet instance.
      */
-    public void call(Class<? extends Packet> clazz, Session session, Packet packet, ProtocolType protocolType) {
+    public void call(Class<? extends Packet> clazz, Session session, Packet packet) {
 
         if(clazz == null) {
             throw new IllegalArgumentException("clazz cannot be null");
@@ -207,19 +206,19 @@ public class Protocol {
 
         Listeners l = listeners.get(clazz);
         if(l != null) {
-            l.call(session, packet, protocolType);
+            l.call(session, packet);
         } else {
             throw new IllegalStateException("no listener for packet " + clazz.getName());
         }
     }
 
     /**
-     * Gets the id from the packet class with which it was registered.
+     * Gets the value from the packet class with which it was registered.
      *
      * @param clazz the class.
-     * @return the packet id.
+     * @return the packet value.
      */
-    public byte findId(Class<? extends Packet> clazz) {
+    public byte findId(Class<? extends Packet> clazz) throws IllegalStateException {
 
         if(!packetByteMap.containsKey(clazz)) {
             throw new IllegalStateException("the class " + clazz.getSimpleName() + " is not registered as a packet");
@@ -229,15 +228,15 @@ public class Protocol {
     }
 
     /**
-     * Creates an instance of a packet from the id.
+     * Creates an instance of a packet from the value.
      *
-     * @param id the id.
+     * @param id the value.
      * @return the packet instance.
      */
-    public Packet create(byte id) {
+    public Packet create(byte id) throws IllegalStateException {
 
         if(!packets.containsKey(id)) {
-            throw new IllegalStateException("a packet with id " + id + " does not exists");
+            throw new IllegalStateException("a packet with value " + id + " does not exists");
         }
 
         try {
