@@ -9,11 +9,10 @@ Cascade is in an stable state and tested.
 - fast setup
 - lightweight
 - simple API design
-- powerful NIO implementation
-- TCP support (UDP will follow)
+- powerful [netty](https://github.com/netty/netty) implementation
+- TCP support
 - packets
 - protocol system
-- callback system
 
 ## Installation
 
@@ -26,7 +25,7 @@ Cascade is in an stable state and tested.
 <dependency>
     <groupId>de.jackwhite20</groupId>
     <artifactId>cascade-all</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>2.0.0-SNAPSHOT</version>
 </dependency>
 ```
 
@@ -36,7 +35,7 @@ If you don't want the client and the server in your project you can use **cascad
 <dependency>
     <groupId>de.jackwhite20</groupId>
     <artifactId>cascade-client</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>2.0.0-SNAPSHOT</version>
 </dependency>
 ```
 
@@ -44,7 +43,7 @@ If you don't want the client and the server in your project you can use **cascad
 <dependency>
     <groupId>de.jackwhite20</groupId>
     <artifactId>cascade-server</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>2.0.0-SNAPSHOT</version>
 </dependency>
 ```
 
@@ -62,25 +61,6 @@ If you don't want the client and the server in your project you can use **cascad
 
 ### Echo-Packets
 - [ChatPacket](https://github.com/JackWhite20/Cascade/blob/master/Example/src/main/java/de/jackwhite20/cascade/example/shared/echo/ChatPacket.java)
-
-### Byte-Array-Server
-- [ByteArrayServer](https://github.com/JackWhite20/Cascade/blob/master/Example/src/main/java/de/jackwhite20/cascade/example/server/bytes/ByteArrayServer.java)
-
-### Byte-Array-Client
-- [ByteArrayClient](https://github.com/JackWhite20/Cascade/blob/master/Example/src/main/java/de/jackwhite20/cascade/example/client/bytes/ByteArrayClient.java)
-
-### Callback-Server
-- [CallbackServer](https://github.com/JackWhite20/Cascade/blob/master/Example/src/main/java/de/jackwhite20/cascade/example/server/callback/CallbackServer.java)
-- [CallbackServerProtocol](https://github.com/JackWhite20/Cascade/blob/master/Example/src/main/java/de/jackwhite20/cascade/example/server/callback/CallbackServerProtocol.java)
-- [CallbackServerPacketListener](https://github.com/JackWhite20/Cascade/blob/master/Example/src/main/java/de/jackwhite20/cascade/example/server/callback/CallbackServerPacketListener.java)
-
-### Callback-Client
-- [CallbackClient](https://github.com/JackWhite20/Cascade/blob/master/Example/src/main/java/de/jackwhite20/cascade/example/client/callback/CallbackClient.java)
-- [CallbackClientProtocol](https://github.com/JackWhite20/Cascade/blob/master/Example/src/main/java/de/jackwhite20/cascade/example/client/callback/CallbackClientProtocol.java)
-
-### Callback-Packets
-- [TestRequestPacket](https://github.com/JackWhite20/Cascade/blob/master/Example/src/main/java/de/jackwhite20/cascade/example/shared/callback/TestRequestPacket.java)
-- [TestResponsePacket](https://github.com/JackWhite20/Cascade/blob/master/Example/src/main/java/de/jackwhite20/cascade/example/shared/callback/TestResponsePacket.java)
 
 ### License
 
