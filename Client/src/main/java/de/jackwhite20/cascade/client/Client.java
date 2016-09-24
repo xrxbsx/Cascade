@@ -19,12 +19,9 @@
 
 package de.jackwhite20.cascade.client;
 
-import de.jackwhite20.cascade.shared.callback.PacketCallback;
 import de.jackwhite20.cascade.shared.protocol.packet.Packet;
-import de.jackwhite20.cascade.shared.protocol.packet.RequestPacket;
-import de.jackwhite20.cascade.shared.protocol.packet.ResponsePacket;
-import de.jackwhite20.cascade.shared.session.SessionListener;
-import de.jackwhite20.cascade.shared.session.impl.ProtocolType;
+
+import java.net.SocketAddress;
 
 /**
  * Created by JackWhite20 on 19.02.2016.
@@ -36,14 +33,7 @@ public interface Client {
      *
      * This method will block until the socket is connected or an exception is thrown.
      */
-    boolean connect();
-
-    /**
-     * Sets the session listener.
-     *
-     * @param sessionListener the session listener.
-     */
-    void sessionListener(SessionListener sessionListener);
+    void connect();
 
     /**
      * Disconnects the client and frees all used resources.
@@ -51,18 +41,11 @@ public interface Client {
     void disconnect();
 
     /**
-     * Returns if the client is running.
-     *
-     * @return true if running otherwise false.
-     */
-    boolean running();
-
-    /**
      * Returns if the client is connected.
      *
      * @return true if connected otherwise false.
      */
-    boolean connected();
+    boolean isConnected();
 
     /**
      * Sends a packet over TCP (ProtocolType.TCP).
@@ -72,29 +55,9 @@ public interface Client {
     void send(Packet packet);
 
     /**
-     * Sends a packet over the given protocol type.
+     * Returns the remote address of this client.
      *
-     * @param packet the packet.
-     * @param protocolType the protocol type.
+     * @return the remote address.
      */
-    void send(Packet packet, ProtocolType protocolType);
-
-    /**
-     * Sends a packet and executes the packet callback when the response packet gets received.
-     * The response packet must extend ResponsePacket.
-     *
-     * @param packet the packet.
-     * @param protocolType the the protocol type.
-     * @param packetCallback the packet callback.
-     */
-    <T extends ResponsePacket> void send(RequestPacket packet, ProtocolType protocolType, PacketCallback<T> packetCallback);
-
-    /**
-     * Sends a packet over TCP (ProtocolType.TCP) and executes the packet callback when the response packet gets received.
-     * The response packet must extend ResponsePacket.
-     *
-     * @param packet the packet.
-     * @param packetCallback the packet callback.
-     */
-    <T extends ResponsePacket> void send(RequestPacket packet, PacketCallback<T> packetCallback);
+    SocketAddress remoteAddress();
 }
