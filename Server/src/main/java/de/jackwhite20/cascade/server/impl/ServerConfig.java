@@ -26,19 +26,7 @@ import de.jackwhite20.cascade.shared.Config;
  */
 public abstract class ServerConfig extends Config {
 
-    private int workerThreads = 2;
-
     private int backlog;
-
-    public int workerThreads() {
-
-        return workerThreads;
-    }
-
-    public void workerThreads(int workerThreads) {
-
-        this.workerThreads = workerThreads;
-    }
 
     public int backlog() {
 
