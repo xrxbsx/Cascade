@@ -65,8 +65,10 @@ public class ServerFactory {
                 //noinspection unchecked
                 options.forEach(option -> option(option.socketOption(), option.value()));
             }
-            for (SessionListener listener : sessionListener) {
-                sessionListener(listener);
+            if (sessionListener != null) {
+                for (SessionListener listener : sessionListener) {
+                    sessionListener(listener);
+                }
             }
         }
 
