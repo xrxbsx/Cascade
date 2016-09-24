@@ -19,8 +19,8 @@
 
 package de.jackwhite20.cascade.client;
 
+import de.jackwhite20.cascade.client.impl.CascadeClient;
 import de.jackwhite20.cascade.client.impl.ClientConfig;
-import de.jackwhite20.cascade.client.impl.ClientImpl;
 import de.jackwhite20.cascade.shared.Config;
 import de.jackwhite20.cascade.shared.Options;
 import de.jackwhite20.cascade.shared.protocol.Protocol;
@@ -36,7 +36,7 @@ public class ClientFactory {
 
     public static Client create(ClientConfig clientConfig) {
 
-        return new ClientImpl(clientConfig);
+        return new CascadeClient(clientConfig);
     }
 
     public static Client create(String host, int port, Protocol protocol, List<Config.Option> options) {
@@ -77,7 +77,6 @@ public class ClientFactory {
             port(port);
             protocol(protocol);
             if(options != null) {
-                //noinspection unchecked
                 options.forEach(option -> option(option.socketOption(), option.value()));
             }
             sessionListener(sessionListener);
