@@ -23,7 +23,8 @@ import de.jackwhite20.cascade.client.Client;
 import de.jackwhite20.cascade.client.ClientFactory;
 import de.jackwhite20.cascade.example.shared.echo.ChatPacket;
 import de.jackwhite20.cascade.shared.Options;
-import de.jackwhite20.cascade.shared.session.impl.ProtocolType;
+import de.jackwhite20.cascade.shared.session.Session;
+import de.jackwhite20.cascade.shared.session.SessionListener;
 
 import java.net.StandardSocketOptions;
 
@@ -53,14 +54,36 @@ public class EchoClient {
 
         // Create a new client and set the TCP_NODELAY option to true
         client = ClientFactory.create(host, port, new EchoClientProtocol(new EchoClientPacketListener()), Options.of(StandardSocketOptions.TCP_NODELAY, true));
+        client.addSessionListener(new SessionListener() {
+
+            @Override
+            public void onConnected(Session session) {
+
+                System.out.println("Connected!");
+
+                String message = "Hey my friend.";
+                System.out.println("Sending to Server: " + message);
+                // Send the packet reliable (TCP) to the server
+                client.send(new ChatPacket(message));
+            }
+
+            @Override
+            public void onDisconnected(Session session) {
+
+                System.out.println("Disconnected!");
+            }
+
+            @Override
+            public void onStarted() {
+
+            }
+
+            @Override
+            public void onStopped() {
+
+            }
+        });
         client.connect();
-
-        System.out.println("Connected!");
-
-        String message = "Hey my friend.";
-        System.out.println("Sending to Server: " + message);
-        // Send the packet reliable (TCP) to the server
-        client.send(new ChatPacket(message), ProtocolType.TCP);
     }
 
     public Client client() {

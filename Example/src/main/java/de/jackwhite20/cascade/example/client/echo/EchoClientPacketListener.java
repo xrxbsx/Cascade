@@ -30,7 +30,8 @@ import de.jackwhite20.cascade.shared.session.Session;
 public class EchoClientPacketListener implements PacketListener {
 
     /**
-     * The method needs a @PacketHandler annotation, a session and as third param the ProtocolType if you need it.
+     * The method needs a @PacketHandler annotation and the session as the first argument.
+     *
      * The second param needs to be your packet class for which this method is responsible for.
      */
     @PacketHandler

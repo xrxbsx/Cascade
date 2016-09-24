@@ -19,7 +19,6 @@
 
 package de.jackwhite20.cascade.example.server.echo;
 
-import de.jackwhite20.cascade.example.server.callback.CallbackServerProtocol;
 import de.jackwhite20.cascade.example.shared.echo.ChatPacket;
 import de.jackwhite20.cascade.server.Server;
 import de.jackwhite20.cascade.server.ServerFactory;
@@ -27,8 +26,6 @@ import de.jackwhite20.cascade.shared.protocol.listener.PacketHandler;
 import de.jackwhite20.cascade.shared.protocol.listener.PacketListener;
 import de.jackwhite20.cascade.shared.session.Session;
 import de.jackwhite20.cascade.shared.session.SessionListener;
-import de.jackwhite20.cascade.shared.session.impl.ProtocolType;
-import de.jackwhite20.cascade.shared.session.impl.SessionImpl;
 
 /**
  * Created by JackWhite20 on 07.11.2015.
@@ -55,39 +52,50 @@ public class EchoServer implements PacketListener {
     public void start() {
 
         // Create a new server instance with the given server config class
-        server = ServerFactory.create(new EchoServerConfig(new CallbackServerProtocol(this)));
-        // You can also pass in your option directly
+        server = ServerFactory.create(new EchoServerConfig(new EchoServerProtocol(this)));
+        // You can also pass in your options directly
         //server = ServerFactory.create(host, port, 200, 4, new EchoServerProtocol(this));
-        server.sessionListener(new SessionListener() {
+        server.addSessionListener(new SessionListener() {
 
             @Override
             public void onConnected(Session session) {
 
-                System.out.println(session.id() + " connected!");
+                System.out.println("Client connected!");
             }
 
             @Override
             public void onDisconnected(Session session) {
 
-                System.out.println(session.id() + " disconnected!");
+                System.out.println("Client disconnected!");
+            }
+
+            @Override
+            public void onStarted() {
+
+                System.out.println("Server started!");
+            }
+
+            @Override
+            public void onStopped() {
+
+                System.out.println("Server stopped!");
             }
         });
         server.start();
-
-        System.out.println("Server started!");
     }
 
     /**
-     * The method needs a @PacketHandler annotation, a session and as third param the ProtocolType if you need it.
+     * The method needs a @PacketHandler annotation and the session as the first argument.
+     *
      * The second param needs to be your packet class for which this method is responsible for.
      */
     @PacketHandler
-    public void onChatPacket(SessionImpl session, ChatPacket chatPacket, ProtocolType type) {
+    public void onChatPacket(Session session, ChatPacket chatPacket) {
 
-        System.out.println("Received from Client " + session.id() + ": " + chatPacket.message());
+        System.out.println("Received from client: " + chatPacket.message());
 
         // Send the packet back with the same ProtocolType
-        session.send(chatPacket, type);
+        session.send(chatPacket);
     }
 
     public Server server() {
