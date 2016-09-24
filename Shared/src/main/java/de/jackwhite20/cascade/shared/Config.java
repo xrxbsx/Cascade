@@ -37,9 +37,11 @@ public abstract class Config {
 
     private Protocol protocol;
 
-    private SessionListener sessionListener;
+    private List<SessionListener> sessionListener = new ArrayList<>();
 
     private List<Option> options = new ArrayList<>();
+
+    private int workerThreads = 2;
 
     public String host() {
 
@@ -71,14 +73,14 @@ public abstract class Config {
         this.protocol = protocol;
     }
 
-    public SessionListener sessionListener() {
+    public List<SessionListener> sessionListener() {
 
         return sessionListener;
     }
 
     public void sessionListener(SessionListener sessionListener) {
 
-        this.sessionListener = sessionListener;
+        this.sessionListener.add(sessionListener);
     }
 
     public <T> void option(SocketOption<T> socketOption, T value) {
@@ -89,6 +91,16 @@ public abstract class Config {
     public List<Option> options() {
 
         return options;
+    }
+
+    public int workerThreads() {
+
+        return workerThreads;
+    }
+
+    public void workerThreads(int workerThreads) {
+
+        this.workerThreads = workerThreads;
     }
 
     public static class Option<T> {
