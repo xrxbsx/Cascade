@@ -19,8 +19,8 @@
 
 package de.jackwhite20.cascade.server;
 
+import de.jackwhite20.cascade.server.impl.CascadeServer;
 import de.jackwhite20.cascade.server.impl.ServerConfig;
-import de.jackwhite20.cascade.server.impl.ServerImpl;
 import de.jackwhite20.cascade.shared.Config;
 import de.jackwhite20.cascade.shared.protocol.Protocol;
 import de.jackwhite20.cascade.shared.session.SessionListener;
@@ -34,15 +34,15 @@ public class ServerFactory {
 
     public static Server create(ServerConfig serverConfig) {
 
-        return new ServerImpl(serverConfig);
+        return new CascadeServer(serverConfig);
     }
 
-    public static Server create(String host, int port, int backlog, int workerThreads, Protocol protocol, List<Config.Option> options, SessionListener sessionListener) {
+    public static Server create(String host, int port, int backlog, int workerThreads, Protocol protocol, List<Config.Option> options, SessionListener... sessionListener) {
 
         return create(new DefaultServerConfig(host, port, backlog, workerThreads, protocol, options, sessionListener));
     }
 
-    public static Server create(String host, int port, int backlog, int workerThreads, Protocol protocol, SessionListener sessionListener) {
+    public static Server create(String host, int port, int backlog, int workerThreads, Protocol protocol, SessionListener... sessionListener) {
 
         return create(new DefaultServerConfig(host, port, backlog, workerThreads, protocol, sessionListener));
     }
@@ -54,7 +54,7 @@ public class ServerFactory {
 
     private static class DefaultServerConfig extends ServerConfig {
 
-        public DefaultServerConfig(String host, int port, int backlog, int workerThreads, Protocol protocol, List<Config.Option> options, SessionListener sessionListener) {
+        public DefaultServerConfig(String host, int port, int backlog, int workerThreads, Protocol protocol, List<Config.Option> options, SessionListener... sessionListener) {
 
             host(host);
             port(port);
@@ -65,10 +65,12 @@ public class ServerFactory {
                 //noinspection unchecked
                 options.forEach(option -> option(option.socketOption(), option.value()));
             }
-            sessionListener(sessionListener);
+            for (SessionListener listener : sessionListener) {
+                sessionListener(listener);
+            }
         }
 
-        public DefaultServerConfig(String host, int port, int backlog, int workerThreads, Protocol protocol, SessionListener sessionListener) {
+        public DefaultServerConfig(String host, int port, int backlog, int workerThreads, Protocol protocol, SessionListener... sessionListener) {
 
             this(host, port, backlog, workerThreads, protocol, null, sessionListener);
         }

@@ -19,8 +19,6 @@
 
 package de.jackwhite20.cascade.server;
 
-import de.jackwhite20.cascade.shared.session.SessionListener;
-
 /**
  * Created by JackWhite20 on 19.02.2016.
  */
@@ -32,13 +30,6 @@ public interface Server {
     void start();
 
     /**
-     * Sets the session listener.
-     *
-     * @param sessionListener the session listener.
-     */
-    void sessionListener(SessionListener sessionListener);
-
-    /**
      * Stops the server and frees all used resources.
      */
     void stop();
@@ -48,5 +39,5 @@ public interface Server {
      *
      * @return true if running otherwise false.
      */
-    boolean running();
+    boolean isRunning();
 }
