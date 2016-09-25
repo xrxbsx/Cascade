@@ -25,7 +25,7 @@ Cascade is in an stable state and tested.
 <dependency>
     <groupId>de.jackwhite20</groupId>
     <artifactId>cascade-all</artifactId>
-    <version>2.0.0-SNAPSHOT</version>
+    <version>2.0.1-SNAPSHOT</version>
 </dependency>
 ```
 
@@ -35,7 +35,7 @@ If you don't want the client and the server in your project you can use **cascad
 <dependency>
     <groupId>de.jackwhite20</groupId>
     <artifactId>cascade-client</artifactId>
-    <version>2.0.0-SNAPSHOT</version>
+    <version>2.0.1-SNAPSHOT</version>
 </dependency>
 ```
 
@@ -43,7 +43,7 @@ If you don't want the client and the server in your project you can use **cascad
 <dependency>
     <groupId>de.jackwhite20</groupId>
     <artifactId>cascade-server</artifactId>
-    <version>2.0.0-SNAPSHOT</version>
+    <version>2.0.1-SNAPSHOT</version>
 </dependency>
 ```
 
