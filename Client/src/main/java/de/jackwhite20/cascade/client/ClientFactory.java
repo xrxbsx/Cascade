@@ -49,17 +49,17 @@ public class ClientFactory {
         return create(new DefaultClientConfig(host, port, protocol, options.list(), null));
     }
 
-    public static Client create(String host, int port, Protocol protocol, List<Config.Option> options, SessionListener sessionListener) {
+    public static Client create(String host, int port, Protocol protocol, List<Config.Option> options, SessionListener... sessionListener) {
 
         return create(new DefaultClientConfig(host, port, protocol, options, sessionListener));
     }
 
-    public static Client create(String host, int port, Protocol protocol, Options options, SessionListener sessionListener) {
+    public static Client create(String host, int port, Protocol protocol, Options options, SessionListener... sessionListener) {
 
         return create(new DefaultClientConfig(host, port, protocol, options.list(), sessionListener));
     }
 
-    public static Client create(String host, int port, Protocol protocol, SessionListener sessionListener) {
+    public static Client create(String host, int port, Protocol protocol, SessionListener... sessionListener) {
 
         return create(new DefaultClientConfig(host, port, protocol, sessionListener));
     }
