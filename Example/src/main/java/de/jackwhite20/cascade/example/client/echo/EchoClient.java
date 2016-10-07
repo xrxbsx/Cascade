@@ -64,7 +64,7 @@ public class EchoClient {
                 String message = "Hey my friend.";
                 System.out.println("Sending to Server: " + message);
                 // Send the packet reliable (TCP) to the server
-                client.send(new ChatPacket(message));
+                client.send(new ChatPacket(0, message));
             }
 
             @Override

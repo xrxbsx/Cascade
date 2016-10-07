@@ -37,6 +37,6 @@ public class EchoClientPacketListener implements PacketListener {
     @PacketHandler
     public void onChatPacket(Session session, ChatPacket chatPacket) {
 
-        System.out.println("Received from Server: " + chatPacket.message());
+        System.out.println("Received from Server: " + chatPacket);
     }
 }

@@ -29,6 +29,8 @@ import io.netty.buffer.ByteBuf;
 @PacketInfo(0)
 public class ChatPacket extends Packet {
 
+    private int id;
+
     private String message;
 
     /**
@@ -38,25 +40,42 @@ public class ChatPacket extends Packet {
 
     }
 
-    public ChatPacket(String message) {
+    public ChatPacket(int id, String message) {
 
+        this.id = id;
         this.message = message;
     }
 
     @Override
     public void read(ByteBuf byteBuf) throws Exception {
 
+        id = byteBuf.readInt();
         message = readString(byteBuf);
     }
 
     @Override
     public void write(ByteBuf byteBuf) throws Exception {
 
+        byteBuf.writeInt(id);
         writeString(byteBuf, message);
     }
 
-    public String message() {
+    public int getId() {
+
+        return id;
+    }
+
+    public String getMessage() {
 
         return message;
+    }
+
+    @Override
+    public String toString() {
+
+        return "ChatPacket{" +
+                "id=" + id +
+                ", message='" + message + '\'' +
+                '}';
     }
 }
