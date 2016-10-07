@@ -63,6 +63,7 @@ public abstract class Packet {
         ArrayList<String> list = new ArrayList<>();
 
         int length = byteBuf.readInt();
+
         for (int i = 0; i < length; i++) {
             list.add(readString(byteBuf));
         }
@@ -81,6 +82,7 @@ public abstract class Packet {
         ArrayList<Integer> list = new ArrayList<>();
 
         int length = byteBuf.readInt();
+
         for (int i = 0; i < length; i++) {
             list.add(byteBuf.readInt());
         }
@@ -138,5 +140,45 @@ public abstract class Packet {
     public Date readDate(ByteBuf byteBuf) {
 
         return new Date(byteBuf.readLong());
+    }
+
+    public void writeArrayString(ByteBuf byteBuf, String... strings) throws UnsupportedEncodingException {
+
+        byteBuf.writeInt(strings.length);
+        for (String string : strings) {
+            writeString(byteBuf, string);
+        }
+    }
+
+    public String[] readArrayString(ByteBuf byteBuf) throws UnsupportedEncodingException {
+
+        int length = byteBuf.readInt();
+
+        String[] strings = new String[length];
+        for (int i = 0; i < length; i++) {
+            strings[i] = readString(byteBuf);
+        }
+
+        return strings;
+    }
+
+    public void writeArrayInteger(ByteBuf byteBuf, Integer... integers) throws UnsupportedEncodingException {
+
+        byteBuf.writeInt(integers.length);
+        for (Integer integer : integers) {
+            byteBuf.writeInt(integer);
+        }
+    }
+
+    public Integer[] readArrayInteger(ByteBuf byteBuf) {
+
+        int length = byteBuf.readInt();
+
+        Integer[] integers = new Integer[length];
+        for (int i = 0; i < length; i++) {
+            integers[i] = byteBuf.readInt();
+        }
+
+        return integers;
     }
 }
