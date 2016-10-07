@@ -21,7 +21,9 @@ package de.jackwhite20.cascade.shared.protocol.packet;
 
 import io.netty.buffer.ByteBuf;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.*;
 
 /**
  * Created by JackWhite20 on 02.01.2016.
@@ -46,5 +48,95 @@ public abstract class Packet {
 
         byteBuf.writeShort(bytes.length);
         byteBuf.writeBytes(bytes);
+    }
+
+    public void writeArrayListString(ByteBuf byteBuf, ArrayList<String> list) throws UnsupportedEncodingException {
+
+        byteBuf.writeInt(list.size());
+        for (String s : list) {
+            writeString(byteBuf, s);
+        }
+    }
+
+    public ArrayList<String> readArrayListString(ByteBuf byteBuf) throws UnsupportedEncodingException {
+
+        ArrayList<String> list = new ArrayList<>();
+
+        int length = byteBuf.readInt();
+        for (int i = 0; i < length; i++) {
+            list.add(readString(byteBuf));
+        }
+
+        return list;
+    }
+
+    public void writeArrayListInteger(ByteBuf byteBuf, ArrayList<Integer> list) throws UnsupportedEncodingException {
+
+        byteBuf.writeInt(list.size());
+        list.forEach(byteBuf::writeInt);
+    }
+
+    public ArrayList<Integer> readArrayListInteger(ByteBuf byteBuf) throws UnsupportedEncodingException {
+
+        ArrayList<Integer> list = new ArrayList<>();
+
+        int length = byteBuf.readInt();
+        for (int i = 0; i < length; i++) {
+            list.add(byteBuf.readInt());
+        }
+
+        return list;
+    }
+
+    public void writeHashMapString(ByteBuf byteBuf, HashMap<String, String> hashMap) throws UnsupportedEncodingException {
+
+        byteBuf.writeInt(hashMap.size());
+        for (Map.Entry<String, String> entry : hashMap.entrySet()) {
+            writeString(byteBuf, entry.getKey());
+            writeString(byteBuf, entry.getValue());
+        }
+    }
+
+    public HashMap<String, String> readHashMapString(ByteBuf byteBuf) throws UnsupportedEncodingException {
+
+        HashMap<String, String> hashMap = new HashMap<>();
+
+        int length = byteBuf.readInt();
+        for (int i = 0; i < length; i++) {
+            hashMap.put(readString(byteBuf), readString(byteBuf));
+        }
+
+        return hashMap;
+    }
+
+    public <V extends Enum> void writeEnum(ByteBuf byteBuf, V v) throws IOException {
+
+        byteBuf.writeInt(v.ordinal());
+    }
+
+    public <V extends Enum> V readEnum(ByteBuf byteBuf, Class<V> clazz) throws IOException {
+
+        return clazz.getEnumConstants()[byteBuf.readInt()];
+    }
+
+    public void writeUUID(ByteBuf byteBuf, UUID uuid) {
+
+        byteBuf.writeLong(uuid.getMostSignificantBits());
+        byteBuf.writeLong(uuid.getLeastSignificantBits());
+    }
+
+    public UUID readUUID(ByteBuf byteBuf) {
+
+        return new UUID(byteBuf.readLong(), byteBuf.readLong());
+    }
+
+    public void writeDate(ByteBuf byteBuf, Date date) {
+
+        byteBuf.writeLong(date.getTime());
+    }
+
+    public Date readDate(ByteBuf byteBuf) {
+
+        return new Date(byteBuf.readLong());
     }
 }
