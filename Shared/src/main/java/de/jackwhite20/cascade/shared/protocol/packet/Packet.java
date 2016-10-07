@@ -21,8 +21,7 @@ package de.jackwhite20.cascade.shared.protocol.packet;
 
 import io.netty.buffer.ByteBuf;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.util.*;
 
 /**
@@ -180,5 +179,32 @@ public abstract class Packet {
         }
 
         return integers;
+    }
+
+    public void writeObject(ByteBuf byteBuf, Object object) throws IOException {
+
+        if (object == null) {
+            throw new IllegalArgumentException("object cannot be null");
+        }
+
+        try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(); ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteArrayOutputStream)) {
+            objectOutputStream.writeObject(object);
+            byte[] bytes = byteArrayOutputStream.toByteArray();
+            byteBuf.writeInt(bytes.length);
+            byteBuf.writeBytes(bytes);
+        }
+    }
+
+    public <T> T readObject(ByteBuf byteBuf) throws IOException, ClassNotFoundException {
+
+        Object object;
+
+        byte[] bytes = new byte[byteBuf.readInt()];
+
+        try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(bytes); ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream)) {
+            object = objectInputStream.readObject();
+        }
+
+        return (T) object;
     }
 }
