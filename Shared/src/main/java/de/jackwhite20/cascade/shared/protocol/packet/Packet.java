@@ -199,7 +199,13 @@ public abstract class Packet {
 
         Object object;
 
-        byte[] bytes = new byte[byteBuf.readInt()];
+        int length = byteBuf.readInt();
+        if (length > byteBuf.readableBytes()) {
+            throw new IllegalStateException("length cannot be larger than the readable bytes");
+        }
+
+        byte[] bytes = new byte[length];
+        byteBuf.readBytes(bytes);
 
         try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(bytes); ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream)) {
             object = objectInputStream.readObject();
