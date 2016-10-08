@@ -25,6 +25,8 @@ import io.netty.buffer.ByteBuf;
 
 /**
  * Created by JackWhite20 on 02.01.2016.
+ *
+ * The PacketInfo annotation is used set a packet id.
  */
 @PacketInfo(0)
 public class ChatPacket extends Packet {
@@ -33,6 +35,8 @@ public class ChatPacket extends Packet {
 
     private String message;
 
+    private TestObject testObject;
+
     /**
      * The default constructor in classes which extends Packet are important.
      */
@@ -40,24 +44,33 @@ public class ChatPacket extends Packet {
 
     }
 
-    public ChatPacket(int id, String message) {
+    public ChatPacket(int id, String message, TestObject testObject) {
 
         this.id = id;
         this.message = message;
+        this.testObject = testObject;
     }
 
     @Override
     public void read(ByteBuf byteBuf) throws Exception {
 
         id = byteBuf.readInt();
-        message = readString(byteBuf);
+
+        // Set the max length to read
+        message = readString(byteBuf, 14);
+
+        testObject = readObject(byteBuf);
     }
 
     @Override
     public void write(ByteBuf byteBuf) throws Exception {
 
         byteBuf.writeInt(id);
-        writeString(byteBuf, message);
+
+        // Set the max length to send
+        writeString(byteBuf, message, 14);
+
+        writeObject(byteBuf, testObject);
     }
 
     public int getId() {
@@ -70,12 +83,18 @@ public class ChatPacket extends Packet {
         return message;
     }
 
+    public TestObject getTestObject() {
+
+        return testObject;
+    }
+
     @Override
     public String toString() {
 
         return "ChatPacket{" +
                 "id=" + id +
                 ", message='" + message + '\'' +
+                ", testObject=" + testObject +
                 '}';
     }
 }

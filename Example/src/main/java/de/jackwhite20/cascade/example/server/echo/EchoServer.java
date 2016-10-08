@@ -92,7 +92,7 @@ public class EchoServer implements PacketListener {
     @PacketHandler
     public void onChatPacket(Session session, ChatPacket chatPacket) {
 
-        System.out.println("Received from client: " + chatPacket);
+        System.out.println("Received from Client: " + chatPacket);
 
         // Send the packet back with the same ProtocolType
         session.send(chatPacket);

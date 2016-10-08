@@ -22,6 +22,7 @@ package de.jackwhite20.cascade.example.client.echo;
 import de.jackwhite20.cascade.client.Client;
 import de.jackwhite20.cascade.client.ClientFactory;
 import de.jackwhite20.cascade.example.shared.echo.ChatPacket;
+import de.jackwhite20.cascade.example.shared.echo.TestObject;
 import de.jackwhite20.cascade.shared.Options;
 import de.jackwhite20.cascade.shared.session.Session;
 import de.jackwhite20.cascade.shared.session.SessionListener;
@@ -64,7 +65,7 @@ public class EchoClient {
                 String message = "Hey my friend.";
                 System.out.println("Sending to Server: " + message);
                 // Send the packet reliable (TCP) to the server
-                client.send(new ChatPacket(0, message));
+                client.send(new ChatPacket(0, message, new TestObject("Some string")));
             }
 
             @Override

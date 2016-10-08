@@ -10,9 +10,9 @@ Cascade is in an stable state and tested.
 - lightweight
 - simple API design
 - powerful [netty](https://github.com/netty/netty) implementation
-- TCP support
 - packets
 - protocol system
+- object serialization
 
 ## Installation
 
@@ -61,6 +61,7 @@ If you don't want the client and the server in your project you can use **cascad
 
 ### Echo-Packets
 - [ChatPacket](https://github.com/JackWhite20/Cascade/blob/master/Example/src/main/java/de/jackwhite20/cascade/example/shared/echo/ChatPacket.java)
+- [TestObject](https://github.com/JackWhite20/Cascade/blob/master/Example/src/main/java/de/jackwhite20/cascade/example/shared/echo/TestObject.java)
 
 ### License
 
