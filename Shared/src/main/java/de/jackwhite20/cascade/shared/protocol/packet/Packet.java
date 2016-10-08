@@ -35,7 +35,18 @@ public abstract class Packet {
 
     public String readString(ByteBuf byteBuf) throws UnsupportedEncodingException {
 
-        byte[] bytes = new byte[byteBuf.readShort()];
+        return readString(byteBuf, byteBuf.readableBytes());
+    }
+
+    public String readString(ByteBuf byteBuf, int maxLength) throws UnsupportedEncodingException {
+
+        int length = byteBuf.readInt();
+
+        if (length > maxLength) {
+            throw new IllegalStateException(String.format("cannot read string longer than %s bytes (got %s bytes)", maxLength, length));
+        }
+
+        byte[] bytes = new byte[length];
         byteBuf.readBytes(bytes);
 
         return new String(bytes, "utf-8");
@@ -43,9 +54,20 @@ public abstract class Packet {
 
     public void writeString(ByteBuf byteBuf, String string) throws UnsupportedEncodingException {
 
+        // Default may length of string is Short.MAX_VALUE
+        writeString(byteBuf, string, Short.MAX_VALUE);
+    }
+
+    public void writeString(ByteBuf byteBuf, String string, int maxLength) throws UnsupportedEncodingException {
+
+        int length = string.length();
+        if (length > maxLength) {
+            throw new IllegalStateException(String.format("cannot send string longer than %s bytes (got %s bytes)", maxLength, length));
+        }
+
         byte[] bytes = string.getBytes("utf-8");
 
-        byteBuf.writeShort(bytes.length);
+        byteBuf.writeInt(bytes.length);
         byteBuf.writeBytes(bytes);
     }
 
@@ -185,6 +207,10 @@ public abstract class Packet {
 
         if (object == null) {
             throw new IllegalArgumentException("object cannot be null");
+        }
+
+        if (!(object instanceof Serializable)) {
+            throw new IllegalArgumentException("object does not implement Serializable interface");
         }
 
         try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(); ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteArrayOutputStream)) {
