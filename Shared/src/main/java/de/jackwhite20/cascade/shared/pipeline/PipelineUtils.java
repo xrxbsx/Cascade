@@ -38,7 +38,7 @@ import java.util.concurrent.ThreadFactory;
 /**
  * Created by JackWhite20 on 24.09.2016.
  */
-public class PipelineUtils {
+public final class PipelineUtils {
 
     private static boolean epoll;
 
