@@ -20,6 +20,7 @@
 package de.jackwhite20.cascade.shared;
 
 import de.jackwhite20.cascade.shared.protocol.Protocol;
+import de.jackwhite20.cascade.shared.security.CryptoFunction;
 import de.jackwhite20.cascade.shared.session.SessionListener;
 
 import java.net.SocketOption;
@@ -43,6 +44,8 @@ public abstract class Config {
     private List<Option> options = new ArrayList<>();
 
     private int workerThreads = 2;
+
+    private CryptoFunction cryptoFunction;
 
     public String host() {
 
@@ -102,6 +105,16 @@ public abstract class Config {
     public void workerThreads(int workerThreads) {
 
         this.workerThreads = workerThreads;
+    }
+
+    public CryptoFunction cryptoFunction() {
+
+        return cryptoFunction;
+    }
+
+    public void cryptoFunction(CryptoFunction cryptoFunction) {
+
+        this.cryptoFunction = cryptoFunction;
     }
 
     public static class Option<T> {

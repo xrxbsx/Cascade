@@ -60,7 +60,7 @@ public class CascadeServer implements Server {
             ServerBootstrap b = new ServerBootstrap();
             serverChannel = b.group(bossGroup, workerGroup)
                     .channel(PipelineUtils.getServerChannel())
-                    .childHandler(new CascadeChannelInitializer(serverConfig.protocol(), serverConfig.sessionListener().stream().collect(Collectors.toList())))
+                    .childHandler(new CascadeChannelInitializer(serverConfig.protocol(), serverConfig.sessionListener().stream().collect(Collectors.toList()), serverConfig.cryptoFunction()))
                     .option(ChannelOption.TCP_NODELAY, true)
                     .option(ChannelOption.SO_BACKLOG, 200)
                     .bind(serverConfig.host(), serverConfig.port())

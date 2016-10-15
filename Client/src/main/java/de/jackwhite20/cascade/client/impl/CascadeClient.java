@@ -57,7 +57,7 @@ public class CascadeClient implements Client {
         Bootstrap b = new Bootstrap();
         b.group(workerGroup)
                 .channel(PipelineUtils.getChannel())
-                .handler(new CascadeChannelInitializer(clientConfig.protocol(), clientConfig.sessionListener()))
+                .handler(new CascadeChannelInitializer(clientConfig.protocol(), clientConfig.sessionListener(), clientConfig.cryptoFunction()))
                 .remoteAddress(new InetSocketAddress(clientConfig.host(), clientConfig.port()));
 
         try {
