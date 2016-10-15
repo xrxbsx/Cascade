@@ -69,6 +69,10 @@ public abstract class CryptoFunction {
 
     public static CryptoFunction aes(byte[] key) {
 
+        if (key.length != 16) {
+            throw new IllegalArgumentException("key length must be 16 bytes");
+        }
+
         return new AesCryptoFunction(key);
     }
 }
