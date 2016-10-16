@@ -37,12 +37,12 @@ public final class SslUtil {
     }
 
     /**
-     * Returns a ssl context with an insecure trust manager.
+     * Returns a client ssl context with an insecure trust manager.
      *
      * @return The ssl context.
      * @throws SSLException If something went wrong.
      */
-    public SslContext insecure() throws SSLException {
+    public static SslContext insecureForClient() throws SSLException {
 
         return SslContextBuilder.forClient()
                 .trustManager(InsecureTrustManagerFactory.INSTANCE)
@@ -50,14 +50,14 @@ public final class SslUtil {
     }
 
     /**
-     * Returns the ssl context with the given cert and key file as key manager.
+     * Returns a client ssl context with the given cert and key file as key manager.
      *
      * @param keyCertChainFile The key cert chain file.
      * @param keyFile The key file.
      * @return The ssl context.
      * @throws SSLException If something went wrong.
      */
-    public SslContext custom(File keyCertChainFile, File keyFile) throws SSLException {
+    public static SslContext customForClient(File keyCertChainFile, File keyFile) throws SSLException {
 
         return SslContextBuilder.forClient()
                 .keyManager(keyCertChainFile, keyFile)
@@ -65,14 +65,44 @@ public final class SslUtil {
     }
 
     /**
-     * Returns the ssl context with the given cert and key input stream as key manager.
+     * Returns a client ssl context with the given cert and key input stream as key manager.
      *
      * @param keyCertChainInputStream The key cert chain input stream.
      * @param keyInputStream The key input stream.
      * @return The ssl context.
      * @throws SSLException If something went wrong.
      */
-    public SslContext custom(InputStream keyCertChainInputStream, InputStream keyInputStream) throws SSLException {
+    public static SslContext customForClient(InputStream keyCertChainInputStream, InputStream keyInputStream) throws SSLException {
+
+        return SslContextBuilder.forClient()
+                .keyManager(keyCertChainInputStream, keyInputStream)
+                .build();
+    }
+
+    /**
+     * Returns a server ssl context with the given cert and key file as key manager.
+     *
+     * @param keyCertChainFile The key cert chain file.
+     * @param keyFile The key file.
+     * @return The ssl context.
+     * @throws SSLException If something went wrong.
+     */
+    public static SslContext customForServer(File keyCertChainFile, File keyFile) throws SSLException {
+
+        return SslContextBuilder.forClient()
+                .keyManager(keyCertChainFile, keyFile)
+                .build();
+    }
+
+    /**
+     * Returns a server ssl context with the given cert and key input stream as key manager.
+     *
+     * @param keyCertChainInputStream The key cert chain input stream.
+     * @param keyInputStream The key input stream.
+     * @return The ssl context.
+     * @throws SSLException If something went wrong.
+     */
+    public static SslContext customForServer(InputStream keyCertChainInputStream, InputStream keyInputStream) throws SSLException {
 
         return SslContextBuilder.forClient()
                 .keyManager(keyCertChainInputStream, keyInputStream)

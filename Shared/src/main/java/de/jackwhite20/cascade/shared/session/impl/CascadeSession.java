@@ -27,6 +27,7 @@ import de.jackwhite20.cascade.shared.session.SessionListener;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.handler.ssl.SslHandler;
 
 import java.io.IOException;
 import java.net.SocketAddress;
@@ -53,8 +54,21 @@ public class CascadeSession extends SimpleChannelInboundHandler<Packet> implemen
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
 
-        for (SessionListener listener : sessionListener) {
-            listener.onConnected(this);
+        // Only call onConnected after successful handshake if SSL is used
+        SslHandler sslHandler = ctx.pipeline().get(SslHandler.class);
+        if (sslHandler != null) {
+            sslHandler.handshakeFuture().addListener(
+                    future -> {
+                        if (future.isSuccess()) {
+                            for (SessionListener listener : sessionListener) {
+                                listener.onConnected(this);
+                            }
+                        }
+                    });
+        } else {
+            for (SessionListener listener : sessionListener) {
+                listener.onConnected(this);
+            }
         }
     }
 

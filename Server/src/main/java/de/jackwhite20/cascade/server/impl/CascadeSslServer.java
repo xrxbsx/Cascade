@@ -31,11 +31,11 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import java.util.stream.Collectors;
 
 /**
- * Created by JackWhite20 on 24.09.2016.
+ * Created by JackWhite20 on 16.10.2016.
  */
-public class CascadeServer extends AbstractCascadeServer {
+public class CascadeSslServer extends AbstractCascadeServer {
 
-    public CascadeServer(ServerConfig serverConfig) {
+    public CascadeSslServer(ServerConfig serverConfig) {
 
         super(serverConfig);
     }
@@ -50,7 +50,7 @@ public class CascadeServer extends AbstractCascadeServer {
             ServerBootstrap b = new ServerBootstrap();
             serverChannel = b.group(bossGroup, workerGroup)
                     .channel(PipelineUtils.getServerChannel())
-                    .childHandler(new CascadeChannelInitializer(serverConfig.protocol(), serverConfig.sessionListener().stream().collect(Collectors.toList()), serverConfig.cryptoFunction()))
+                    .childHandler(new CascadeChannelInitializer(serverConfig.host(), serverConfig.port(), serverConfig.sslContext(), serverConfig.protocol(), serverConfig.sessionListener().stream().collect(Collectors.toList()), serverConfig.cryptoFunction()))
                     .option(ChannelOption.TCP_NODELAY, true)
                     .option(ChannelOption.SO_BACKLOG, 200)
                     .bind(serverConfig.host(), serverConfig.port())
