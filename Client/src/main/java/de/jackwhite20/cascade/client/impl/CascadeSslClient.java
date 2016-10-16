@@ -28,13 +28,17 @@ import io.netty.bootstrap.Bootstrap;
 import java.net.InetSocketAddress;
 
 /**
- * Created by JackWhite20 on 24.09.2016.
+ * Created by JackWhite20 on 16.10.2016.
  */
-public class CascadeClient extends CascadeAbstractClient {
+public class CascadeSslClient extends CascadeAbstractClient {
 
-    public CascadeClient(ClientConfig clientConfig) {
+    public CascadeSslClient(ClientConfig clientConfig) {
 
         super(clientConfig);
+
+        if (clientConfig.sslContext() == null) {
+            throw new IllegalArgumentException("sslContext must be set in the client config");
+        }
     }
 
     @Override
@@ -45,7 +49,7 @@ public class CascadeClient extends CascadeAbstractClient {
         Bootstrap b = new Bootstrap();
         b.group(workerGroup)
                 .channel(PipelineUtils.getChannel())
-                .handler(new CascadeChannelInitializer(clientConfig.protocol(), clientConfig.sessionListener(), clientConfig.cryptoFunction()))
+                .handler(new CascadeChannelInitializer(clientConfig.host(), clientConfig.port(), clientConfig.sslContext(), clientConfig.protocol(), clientConfig.sessionListener(), clientConfig.cryptoFunction()))
                 .remoteAddress(new InetSocketAddress(clientConfig.host(), clientConfig.port()));
 
         try {

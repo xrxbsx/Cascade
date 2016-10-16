@@ -22,6 +22,7 @@ package de.jackwhite20.cascade.shared;
 import de.jackwhite20.cascade.shared.protocol.Protocol;
 import de.jackwhite20.cascade.shared.security.CryptoFunction;
 import de.jackwhite20.cascade.shared.session.SessionListener;
+import io.netty.handler.ssl.SslContext;
 
 import java.net.SocketOption;
 import java.util.ArrayList;
@@ -46,6 +47,8 @@ public abstract class Config {
     private int workerThreads = 2;
 
     private CryptoFunction cryptoFunction;
+
+    private SslContext sslContext;
 
     public String host() {
 
@@ -115,6 +118,16 @@ public abstract class Config {
     public void cryptoFunction(CryptoFunction cryptoFunction) {
 
         this.cryptoFunction = cryptoFunction;
+    }
+
+    public SslContext sslContext() {
+
+        return sslContext;
+    }
+
+    public void sslContext(SslContext sslContext) {
+
+        this.sslContext = sslContext;
     }
 
     public static class Option<T> {

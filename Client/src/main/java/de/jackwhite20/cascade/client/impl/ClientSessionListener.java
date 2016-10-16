@@ -19,6 +19,7 @@
 
 package de.jackwhite20.cascade.client.impl;
 
+import de.jackwhite20.cascade.client.CascadeAbstractClient;
 import de.jackwhite20.cascade.shared.session.Session;
 import de.jackwhite20.cascade.shared.session.impl.SessionListenerAdapter;
 
@@ -27,9 +28,9 @@ import de.jackwhite20.cascade.shared.session.impl.SessionListenerAdapter;
  */
 public class ClientSessionListener extends SessionListenerAdapter {
 
-    private CascadeClient cascadeClient;
+    private CascadeAbstractClient cascadeClient;
 
-    public ClientSessionListener(CascadeClient cascadeClient) {
+    public ClientSessionListener(CascadeAbstractClient cascadeClient) {
 
         this.cascadeClient = cascadeClient;
     }

@@ -20,11 +20,13 @@
 package de.jackwhite20.cascade.client;
 
 import de.jackwhite20.cascade.client.impl.CascadeClient;
+import de.jackwhite20.cascade.client.impl.CascadeSslClient;
 import de.jackwhite20.cascade.client.impl.ClientConfig;
 import de.jackwhite20.cascade.shared.Config;
 import de.jackwhite20.cascade.shared.Options;
 import de.jackwhite20.cascade.shared.protocol.Protocol;
 import de.jackwhite20.cascade.shared.session.SessionListener;
+import io.netty.handler.ssl.SslContext;
 
 import java.util.Collections;
 import java.util.List;
@@ -37,6 +39,11 @@ public class ClientFactory {
     public static Client create(ClientConfig clientConfig) {
 
         return new CascadeClient(clientConfig);
+    }
+
+    public static Client createSsl(ClientConfig clientConfig) {
+
+        return new CascadeSslClient(clientConfig);
     }
 
     public static Client create(String host, int port, Protocol protocol, List<Config.Option> options) {
@@ -67,6 +74,14 @@ public class ClientFactory {
     public static Client create(String host, int port, Protocol protocol) {
 
         return create(host, port, protocol, Collections.emptyList(), null);
+    }
+
+    public static Client create(SslContext sslContext, String host, int port, Protocol protocol, SessionListener... sessionListeners) {
+
+        ClientConfig clientConfig = new DefaultClientConfig(host, port, protocol, sessionListeners);
+        clientConfig.sslContext(sslContext);
+
+        return createSsl(clientConfig);
     }
 
     private static class DefaultClientConfig extends ClientConfig {
