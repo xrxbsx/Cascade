@@ -44,6 +44,8 @@ public abstract class Config {
 
     private List<Option> options = new ArrayList<>();
 
+    private int bossThreads = 1;
+
     private int workerThreads = 2;
 
     private CryptoFunction cryptoFunction;
@@ -108,6 +110,16 @@ public abstract class Config {
     public void workerThreads(int workerThreads) {
 
         this.workerThreads = workerThreads;
+    }
+
+    public int bossThreads() {
+
+        return bossThreads;
+    }
+
+    public void bossThreads(int bossThreads) {
+
+        this.bossThreads = bossThreads;
     }
 
     public CryptoFunction cryptoFunction() {

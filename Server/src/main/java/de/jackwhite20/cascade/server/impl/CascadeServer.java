@@ -26,7 +26,6 @@ import de.jackwhite20.cascade.shared.session.SessionListener;
 import de.jackwhite20.cascade.shared.thread.CascadeThreadFactory;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelOption;
-import io.netty.channel.nio.NioEventLoopGroup;
 
 import java.util.stream.Collectors;
 
@@ -43,8 +42,8 @@ public class CascadeServer extends AbstractCascadeServer {
     @Override
     public void start() {
 
-        bossGroup = new NioEventLoopGroup();
-        workerGroup = PipelineUtils.newEventLoopGroup(serverConfig.workerThreads(), new CascadeThreadFactory("Server"));
+        bossGroup = PipelineUtils.newEventLoopGroup(serverConfig.bossThreads(), new CascadeThreadFactory("Server Boss"));
+        workerGroup = PipelineUtils.newEventLoopGroup(serverConfig.workerThreads(), new CascadeThreadFactory("Server Worker"));
 
         try {
             ServerBootstrap b = new ServerBootstrap();
@@ -52,7 +51,7 @@ public class CascadeServer extends AbstractCascadeServer {
                     .channel(PipelineUtils.getServerChannel())
                     .childHandler(new CascadeChannelInitializer(serverConfig.protocol(), serverConfig.sessionListener().stream().collect(Collectors.toList()), serverConfig.cryptoFunction()))
                     .option(ChannelOption.TCP_NODELAY, true)
-                    .option(ChannelOption.SO_BACKLOG, 200)
+                    .option(ChannelOption.SO_BACKLOG, serverConfig.backlog())
                     .bind(serverConfig.host(), serverConfig.port())
                     .sync()
                     .channel();

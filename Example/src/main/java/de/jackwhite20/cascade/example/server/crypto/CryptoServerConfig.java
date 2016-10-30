@@ -36,6 +36,9 @@ public class CryptoServerConfig extends ServerConfig {
         host("0.0.0.0");
         // Set the port to listen on
         port(12345);
+        // If you need more than 1 boss thread you can set it like this
+        // But if you don't have many connections per second one is more than enough
+        //bossThreads(2);
         // Set the amount of threads for read events
         workerThreads(2);
         // Set the backlog for the incoming connections
